@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="icon" href="favicon.ico">
+
+<link rel="icon" href="favicon.ico">
 
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
@@ -35,52 +36,95 @@ async function loadReviews(){
     const parser = new DOMParser();
     const doc = parser.parseFromString(json.message,"text/html");
 
-    const reviews = doc.querySelectorAll(".module.search_result");
+    /* GET REVIEWS */
+
+    const reviews = doc.querySelectorAll(".recent_reviews .member-review");
 
     container.innerHTML="";
 
-    let count = 0;
+    /* CONVERT TO ARRAY */
 
-    for (const r of reviews) {
+    let reviewArray = Array.from(reviews);
 
-      if(count >= 8) break;
+    /* RANDOMIZE ORDER */
+
+    reviewArray.sort(()=>Math.random()-0.5);
+
+    const companies={};
+
+    let count=0;
+
+    for(const r of reviewArray){
+
+      if(count>=12) break;
+
+      /* COMPANY NAME */
 
       const company =
-        r.querySelector(".notranslate")?.innerText ||
+        r.querySelector(".review-title")?.innerText ||
         r.querySelector("h3")?.innerText ||
         "Company";
 
+      /* PREVENT DUPLICATE COMPANIES */
+
+      if(companies[company]) continue;
+      companies[company]=true;
+
+      /* DESCRIPTION */
+
       let description =
-        r.querySelector("p")?.innerText || "";
+        r.querySelector(".member-review-info p")?.innerText ||
+        "";
 
-      if(description.includes("Overall Rating")){
-        description = r.querySelectorAll("p")[1]?.innerText || "";
+      if(description.length>140){
+        description = description.substring(0,137)+"...";
       }
 
-      if(description.length > 140){
-        description = description.substring(0,137) + "...";
-      }
+      /* COMPANY LOGO */
 
-      const path =
-        r.querySelector("a")?.getAttribute("href") || "";
+      const logo =
+        r.querySelector(".member-review-image img")?.src ||
+        "";
+
+      /* COMPANY LINK */
 
       const link =
-        "https://www.biohackingcompanies.com" + path;
+        r.querySelector("a")?.href ||
+        "#";
 
-      const card = document.createElement("a");
+      /* CREATE CARD */
+
+      const card=document.createElement("a");
 
       card.className="review-card";
       card.href=link;
       card.target="_blank";
 
-      card.innerHTML = `
-        <div class="review-company">${company}</div>
-        <div class="review-stars">★★★★★</div>
-        <div class="review-text">${description}</div>
-        <div class="review-footer">
-          <span>Verified Review</span>
-          <span>Read More →</span>
+      card.innerHTML=`
+
+      <div class="review-header">
+
+        <img class="review-logo" src="${logo}"/>
+
+        <div>
+
+          <div class="review-company">${company}</div>
+
+          <div class="review-stars">★★★★★</div>
+
         </div>
+
+      </div>
+
+      <div class="review-text">
+      ${description}
+      </div>
+
+      <div class="review-footer">
+        <span>Verified Review</span>
+        <span>Read More →</span>
+      </div>
+
       `;
 
       container.appendChild(card);
@@ -93,8 +137,7 @@ async function loadReviews(){
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML =
-    "Unable to load reviews.";
+    document.getElementById("reviews").innerHTML="Unable to load reviews.";
 
     console.error(err);
 
