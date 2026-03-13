@@ -35,76 +35,65 @@ async function loadReviews(){
     const parser = new DOMParser();
     const doc = parser.parseFromString(json.message,"text/html");
 
-   const reviews = doc.querySelectorAll(".recent_reviews .member-review");
+    const reviews = doc.querySelectorAll(".module.search_result");
 
     container.innerHTML="";
 
-    const companies={};
-    let count=0;
+    let count = 0;
 
-    reviews.forEach(r=>{
+    for (const r of reviews) {
 
-  if(count>=8) return;
+      if(count >= 8) break;
 
-  const company =
-    r.querySelector(".review-title")?.innerText ||
-    r.querySelector("h3")?.innerText ||
-    "Company";
+      const company =
+        r.querySelector(".notranslate")?.innerText ||
+        r.querySelector("h3")?.innerText ||
+        "Company";
 
-  const description =
-    r.querySelector(".member-review-info p")?.innerText ||
-    "";
+      let description =
+        r.querySelector("p")?.innerText || "";
 
-  const logo =
-    r.querySelector(".member-review-image img")?.src || "";
+      if(description.includes("Overall Rating")){
+        description = r.querySelectorAll("p")[1]?.innerText || "";
+      }
 
-  const link =
-    r.querySelector("a")?.href || "#";
+      if(description.length > 140){
+        description = description.substring(0,137) + "...";
+      }
 
-  const card=document.createElement("a");
+      const path =
+        r.querySelector("a")?.getAttribute("href") || "";
 
-  card.className="review-card";
-  card.href=link;
-  card.target="_blank";
+      const link =
+        "https://www.biohackingcompanies.com" + path;
 
-  card.innerHTML=`
+      const card = document.createElement("a");
 
-  <div class="review-header">
+      card.className="review-card";
+      card.href=link;
+      card.target="_blank";
 
-    <img class="review-logo" src="${logo}"/>
+      card.innerHTML = `
+        <div class="review-company">${company}</div>
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">${description}</div>
+        <div class="review-footer">
+          <span>Verified Review</span>
+          <span>Read More →</span>
+        </div>
+      `;
 
-    <div>
+      container.appendChild(card);
 
-      <div class="review-company">${company}</div>
+      count++;
 
-      <div class="review-stars">★★★★★</div>
-
-    </div>
-
-  </div>
-
-  <div class="review-text">
-  ${description}
-  </div>
-
-  <div class="review-footer">
-    <span>Verified Review</span>
-    <span>Read More →</span>
-  </div>
-
-  `;
-
-  container.appendChild(card);
-
-  count++;
-
-});
+    }
 
   }
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML=
+    document.getElementById("reviews").innerHTML =
     "Unable to load reviews.";
 
     console.error(err);
