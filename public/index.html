@@ -36,130 +36,94 @@ object-fit:cover;
 
 async function loadReviews(){
 
-  try{
+try{
 
-    const res = await fetch("/api/reviews");
-    const json = await res.json();
+const res = await fetch("/api/reviews");
 
-    const container = document.getElementById("reviews");
+const json = await res.json();
 
-    if(!json.message){
-      container.innerHTML="No reviews available.";
-      return;
-    }
+const container=document.getElementById("reviews");
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(json.message,"text/html");
+if(!json.data){
+container.innerHTML="No reviews available.";
+return;
+}
 
-    const reviews = doc.querySelectorAll(".module.search_result");
+let reviews=json.data;
 
-    container.innerHTML="";
+/* RANDOMIZE */
 
-    let cards=[];
-    let seenCompanies=new Set();
+reviews.sort(()=>Math.random()-0.5);
 
-    reviews.forEach(r=>{
+/* LIMIT */
 
-      const company =
-        r.querySelector(".notranslate")?.innerText ||
-        r.querySelector("h3")?.innerText ||
-        "Company";
+reviews=reviews.slice(0,12);
 
-      /* skip duplicate companies */
+container.innerHTML="";
 
-      if(seenCompanies.has(company)) return;
-      seenCompanies.add(company);
+reviews.forEach(r=>{
 
-      let description =
-        r.querySelectorAll("p")[1]?.innerText ||
-        r.querySelector("p")?.innerText ||
-        "";
+const company=r.company_name || r.review_name || "Company";
 
-      description = description.replace(/<[^>]*>?/gm,'');
+let description=r.review_description || "";
 
-      if(description.length>140){
-        description=description.substring(0,137)+"...";
-      }
+description=description.replace(/<[^>]*>?/gm,'');
 
-      const path =
-        r.querySelector("a")?.getAttribute("href") || "";
+if(description.length>140){
+description=description.substring(0,137)+"...";
+}
 
-      const link =
-        "https://www.biohackingcompanies.com"+path;
+const logo=r.company_logo || r.logo || "/favicon.ico";
 
-      /* COMPANY LOGO */
+const link=r.review_link || "#";
 
-      const logo =
-        r.querySelector("img")?.getAttribute("src") || "";
+const card=document.createElement("a");
 
-      const logoUrl =
-        "https://www.biohackingcompanies.com"+logo;
+card.className="review-card";
+card.href=link;
+card.target="_blank";
 
-      cards.push({
-        company,
-        description,
-        link,
-        logo:logoUrl
-      });
+card.innerHTML=`
 
-    });
+<div class="review-header">
 
-    /* RANDOM ORDER */
+<img class="review-logo" src="${logo}">
 
-    cards.sort(()=>Math.random()-0.5);
+<div>
 
-    /* LIMIT 12 */
+<div class="review-company">${company}</div>
 
-    cards=cards.slice(0,12);
+<div class="review-stars">★★★★★</div>
 
-    /* CREATE CARDS */
+</div>
 
-    cards.forEach(c=>{
+</div>
 
-      const card=document.createElement("a");
+<div class="review-text">${description}</div>
 
-      card.className="review-card";
-      card.href=c.link;
-      card.target="_blank";
+<div class="review-footer">
 
-      card.innerHTML=`
+<span>Verified Review</span>
 
-      <div class="review-header">
+<span>Read More →</span>
 
-        <img class="review-logo" src="${c.logo}" alt="${c.company}">
+</div>
 
-        <div>
+`;
 
-          <div class="review-company">${c.company}</div>
+container.appendChild(card);
 
-          <div class="review-stars">★★★★★</div>
+});
 
-        </div>
+}
 
-      </div>
+catch(err){
 
-      <div class="review-text">${c.description}</div>
+document.getElementById("reviews").innerHTML="Unable to load reviews";
 
-      <div class="review-footer">
-        <span>Verified Review</span>
-        <span>Read More →</span>
-      </div>
+console.error(err);
 
-      `;
-
-      container.appendChild(card);
-
-    });
-
-  }
-
-  catch(err){
-
-    document.getElementById("reviews").innerHTML="Unable to load reviews.";
-
-    console.error(err);
-
-  }
+}
 
 }
 
