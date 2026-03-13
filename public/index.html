@@ -38,6 +38,7 @@ async function loadReviews(){
 
     container.innerHTML="";
 
+    const companiesSeen = new Set();   // prevents duplicates
     let cards = [];
 
 reviews.forEach(r=>{
@@ -45,16 +46,31 @@ reviews.forEach(r=>{
   /* COMPANY NAME */
 
   const company =
-    r.querySelector(".notranslate")?.innerText ||
-    r.querySelector("h3")?.innerText ||
+    r.querySelector(".notranslate")?.innerText.trim() ||
+    r.querySelector("h3")?.innerText.trim() ||
     "Company";
+
+
+  /* SKIP DUPLICATE COMPANIES */
+
+  if(companiesSeen.has(company)) return;
+  companiesSeen.add(company);
 
 
   /* COMPANY LOGO */
 
-  const logo =
-    r.querySelector(".member-review-image img")?.src ||
-    "";
+  const logoElement = r.querySelector(".member-review-image img");
+
+  let logo =
+      logoElement?.getAttribute("src") ||
+      logoElement?.getAttribute("data-src") ||
+      "";
+
+  /* FIX RELATIVE LOGO URL */
+
+  if(logo && !logo.startsWith("http")){
+      logo = "https://www.biohackingcompanies.com" + logo;
+  }
 
 
   /* DESCRIPTION */
@@ -100,7 +116,6 @@ cards.sort(()=>Math.random()-0.5);
 cards = cards.slice(0,12);
 
 
-    
 /* CREATE CARDS */
 
 cards.forEach(c=>{
@@ -113,9 +128,11 @@ cards.forEach(c=>{
 
   card.innerHTML=`
 
+    ${c.logo ? `
     <div class="review-logo">
-      <img src="${c.logo}" alt="${c.company}">
+      <img src="${c.logo}" alt="${c.company}" onerror="this.style.display='none'">
     </div>
+    ` : ``}
 
     <div class="review-company">${c.company}</div>
 
@@ -138,7 +155,7 @@ cards.forEach(c=>{
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML=
+    document.getElementById("reviews").innerHTML =
     "Unable to load reviews.";
 
     console.error(err);
