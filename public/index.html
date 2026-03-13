@@ -2,8 +2,6 @@
 <html>
 <head>
 
-<link rel="icon" href="favicon.ico">
-
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
 
@@ -24,131 +22,76 @@ async function loadReviews(){
   try{
 
     const res = await fetch("/api/reviews");
-    const json = await res.json();
+    const data = await res.json();
 
     const container = document.getElementById("reviews");
 
-    if(!json.message){
-      container.innerHTML="No reviews available.";
-      return;
-    }
+    container.innerHTML = "";
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(json.message,"text/html");
+    data.slice(0,12).forEach(r => {
 
-    /* GET REVIEWS */
+      /* STAR RATING */
 
-    const reviews = doc.querySelectorAll(".recent_reviews .member-review");
+      const stars = "★".repeat(r.rating_overall) + 
+                    "☆".repeat(5 - r.rating_overall);
 
-    container.innerHTML="";
+      /* SHORT REVIEW */
 
-    const companies={};
+      let snippet = r.review_description || "";
 
-    let count=0;
-
-    for(const r of reviews){
-
-      if(count>=12) break;
-
-      /* COMPANY NAME */
-
-      const company =
-        r.querySelector(".review-title")?.innerText ||
-        r.querySelector("h3")?.innerText ||
-        "Company";
-
-      /* PREVENT DUPLICATE COMPANIES */
-
-      if(companies[company]) continue;
-      companies[company]=true;
-
-      /* REVIEW TITLE */
-
-      const title =
-        r.querySelector(".review-title")?.innerText ||
-        "";
-
-      /* DESCRIPTION */
-
-      let description =
-        r.querySelector(".member-review-info p")?.innerText ||
-        "";
-
-      if(description.length>140){
-        description = description.substring(0,137)+"...";
+      if(snippet.length > 140){
+        snippet = snippet.substring(0,137) + "...";
       }
 
-      /* COMPANY LOGO */
+      /* CARD */
 
-      const logo =
-        r.querySelector(".member-review-image img")?.src ||
-        "";
+      const card = document.createElement("a");
 
-      /* COMPANY LINK */
+      card.className = "review-card";
+      card.href = r.company_link;
+      card.target = "_blank";
 
-      const link =
-        r.querySelector("a")?.href ||
-        "#";
+      card.innerHTML = `
 
-      /* REAL STAR RATING */
+        <div class="review-header">
 
-      const stars =
-        r.querySelectorAll(".fa-star").length || 5;
+          <img class="review-logo" src="${r.logo}" />
 
-      let starHTML="";
+          <div>
 
-      for(let i=0;i<stars;i++){
-        starHTML += "★";
-      }
+            <div class="review-company">${r.company}</div>
 
-      /* CREATE CARD */
+            <div class="review-stars">${stars}</div>
 
-      const card=document.createElement("a");
-
-      card.className="review-card";
-      card.href=link;
-      card.target="_blank";
-
-      card.innerHTML=`
-
-      <div class="review-header">
-
-        <img class="review-logo" src="${logo}"/>
-
-        <div>
-
-          <div class="review-company">${company}</div>
-
-          <div class="review-stars">${starHTML}</div>
+          </div>
 
         </div>
 
-      </div>
+        <div class="review-title">
+          ${r.review_title}
+        </div>
 
-      <div class="review-title">${title}</div>
+        <div class="review-text">
+          ${snippet}
+        </div>
 
-      <div class="review-text">
-      ${description}
-      </div>
-
-      <div class="review-footer">
-        <span>Verified Review</span>
-        <span>Read More →</span>
-      </div>
+        <div class="review-footer">
+          <span>Verified Review</span>
+          <span>Read More →</span>
+        </div>
 
       `;
 
       container.appendChild(card);
 
-      count++;
-
-    }
+    });
 
   }
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML="Unable to load reviews.";
+    document.getElementById("reviews").innerHTML =
+      "Unable to load reviews.";
 
     console.error(err);
 
@@ -162,4 +105,3 @@ loadReviews();
 
 </body>
 </html>
-
