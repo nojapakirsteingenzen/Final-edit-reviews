@@ -1,36 +1,50 @@
 export default async function handler(req, res) {
 
-const API_URL = "https://www.biohackingcompanies.com/api/v2/users_reviews/search";
+  const API_URL = "https://www.biohackingcompanies.com/api/v2/users_reviews/search";
 
-try {
+  // Allow callers to control paging via query params (e.g. /api/reviews?limit=20&page=2)
+  const { limit = 50, page = 1, output_type = "array" } = req.query;
 
-const response = await fetch(API_URL,{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"X-Api-Key":"38b2668904a5e2839b6106773444040b"
-},
-body:JSON.stringify({
-limit:100,
-page:1,
-output_type:"array"
-})
-});
+  const body = {
+    limit: Number(limit) || 50,
+    page: Number(page) || 1,
+    output_type: String(output_type)
+  };
 
-const data = await response.json();
+  try {
 
-res.setHeader("Access-Control-Allow-Origin","*");
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": "38b2668904a5e2839b6106773444040b"
+      },
+      body: JSON.stringify(body)
+    });
 
-res.status(200).json(data);
+    const text = await response.text();
 
-}
+    let data;
 
-catch(err){
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(500).json({
+        error: "API returned non-JSON response",
+        raw: text
+      });
+    }
 
-res.status(500).json({
-error:err.message
-});
+    res.setHeader("Access-Control-Allow-Origin", "*");
 
-}
+    res.status(200).json(data);
+
+  } catch (error) {
+
+    res.status(500).json({
+      error: error.message
+    });
+
+  }
 
 }
