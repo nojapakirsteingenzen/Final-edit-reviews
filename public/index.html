@@ -5,17 +5,14 @@
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
 
-<link rel="icon" href="favicon.ico">
-
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 
 body{
 font-family:'Open Sans',sans-serif;
-background:#ffffff;
+background:#fff;
 margin:40px;
-color:#2a2a3a;
 }
 
 /* GRID */
@@ -23,22 +20,21 @@ color:#2a2a3a;
 #reviews{
 display:grid;
 grid-template-columns:repeat(4,1fr);
-gap:18px;
-margin-top:40px;
+gap:20px;
 }
 
 /* CARD */
 
 .review-card{
-display:flex;
-flex-direction:column;
-gap:10px;
-padding:18px;
 background:#f5f5f7;
+padding:18px;
 border-radius:12px;
 border:1px solid rgba(0,0,0,.08);
 text-decoration:none;
 color:#333;
+display:flex;
+flex-direction:column;
+gap:12px;
 transition:.25s;
 }
 
@@ -47,17 +43,22 @@ transform:translateY(-4px);
 box-shadow:0 10px 30px rgba(0,0,0,.1);
 }
 
-/* LOGO */
+/* HEADER */
 
-.review-logo{
-text-align:center;
-margin-bottom:10px;
+.review-header{
+display:flex;
+align-items:center;
+gap:10px;
 }
 
-.review-logo img{
-max-width:120px;
-max-height:60px;
+.review-logo{
+width:38px;
+height:38px;
+border-radius:6px;
 object-fit:contain;
+background:#fff;
+padding:3px;
+border:1px solid #ddd;
 }
 
 /* COMPANY */
@@ -92,18 +93,14 @@ color:#999;
 margin-top:auto;
 }
 
-/* RESPONSIVE */
+/* MOBILE */
 
 @media(max-width:1024px){
-#reviews{
-grid-template-columns:repeat(2,1fr);
-}
+#reviews{grid-template-columns:repeat(2,1fr);}
 }
 
 @media(max-width:640px){
-#reviews{
-grid-template-columns:1fr;
-}
+#reviews{grid-template-columns:1fr;}
 }
 
 </style>
@@ -130,25 +127,15 @@ container.innerHTML="No reviews available.";
 return;
 }
 
-/* PARSE HTML */
-
 const parser = new DOMParser();
 const doc = parser.parseFromString(json.message,"text/html");
 
-/* GET REVIEWS */
-
 const reviews = doc.querySelectorAll(".module.search_result");
-
-/* CLEAR GRID */
 
 container.innerHTML="";
 
-/* STORAGE */
-
 let cards=[];
-let seenCompanies=new Set();
-
-/* LOOP */
+let seen=new Set();
 
 reviews.forEach(r=>{
 
@@ -159,31 +146,24 @@ r.querySelector("h3")?.innerText ||
 
 /* REMOVE DUPLICATES */
 
-if(seenCompanies.has(company)) return;
-seenCompanies.add(company);
+if(seen.has(company)) return;
+seen.add(company);
 
 /* DESCRIPTION */
 
 let description =
 r.querySelector("p")?.innerText || "";
 
-description = description.replace(/<[^>]*>?/gm,'');
-
 if(description.length>140){
-description=description.substring(0,137)+"...";
+description = description.substring(0,137)+"...";
 }
 
 /* LOGO */
 
-const logoPath =
-r.querySelector("img.review_photo")?.getAttribute("src") ||
-r.querySelector("img")?.getAttribute("src") ||
-"";
-
 const logo =
-logoPath.startsWith("http")
-? logoPath
-: "https://www.biohackingcompanies.com"+logoPath;
+r.querySelector("img.review_photo")?.src ||
+r.querySelector("img")?.src ||
+"";
 
 /* LINK */
 
@@ -192,8 +172,6 @@ r.querySelector("a")?.getAttribute("href") || "";
 
 const link =
 "https://www.biohackingcompanies.com"+path;
-
-/* STORE */
 
 cards.push({
 company,
@@ -208,9 +186,9 @@ link
 
 cards.sort(()=>Math.random()-0.5);
 
-/* LIMIT */
+/* LIMIT 12 */
 
-cards=cards.slice(0,12);
+cards = cards.slice(0,12);
 
 /* RENDER */
 
@@ -224,13 +202,13 @@ card.target="_blank";
 
 card.innerHTML=`
 
-<div class="review-logo">
-<img src="${c.logo}" alt="${c.company}">
-</div>
-
+<div class="review-header">
+<img class="review-logo" src="${c.logo}">
+<div>
 <div class="review-company">${c.company}</div>
-
 <div class="review-stars">★★★★★</div>
+</div>
+</div>
 
 <div class="review-text">${c.description}</div>
 
@@ -258,10 +236,6 @@ console.error(err);
 }
 
 loadReviews();
-
-/* OPTIONAL AUTO REFRESH */
-
-setInterval(loadReviews,30000);
 
 </script>
 
