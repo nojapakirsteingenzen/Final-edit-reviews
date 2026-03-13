@@ -27,7 +27,7 @@ async function loadReviews(){
     const container = document.getElementById("reviews");
 
     if(!json.message){
-      container.innerHTML="No reviews available.";
+      container.innerHTML = "No reviews available.";
       return;
     }
 
@@ -36,78 +36,81 @@ async function loadReviews(){
 
     const reviews = doc.querySelectorAll(".module.search_result");
 
-    container.innerHTML="";
+    container.innerHTML = "";
 
-   const reviews = doc.querySelectorAll(".module.search_result");
+    let cards = [];
 
-let cards = [];
+    reviews.forEach(r => {
 
-reviews.forEach(r => {
+      const company =
+        r.querySelector(".notranslate")?.innerText ||
+        r.querySelector("h3")?.innerText ||
+        "Company";
 
-  const company =
-    r.querySelector(".notranslate")?.innerText ||
-    r.querySelector("h3")?.innerText ||
-    "Company";
+      let description =
+        r.querySelectorAll("p")[1]?.innerText ||
+        r.querySelector("p")?.innerText ||
+        "";
 
-  let description =
-    r.querySelectorAll("p")[1]?.innerText ||
-    r.querySelector("p")?.innerText ||
-    "";
+      /* remove html tags if any */
 
-  if(description.length > 140){
-    description = description.substring(0,137)+"...";
-  }
+      description = description.replace(/<[^>]*>?/gm,'');
 
-  const path =
-    r.querySelector("a")?.getAttribute("href") || "";
+      if(description.length > 140){
+        description = description.substring(0,137) + "...";
+      }
 
-  const link =
-    "https://www.biohackingcompanies.com" + path;
+      const path =
+        r.querySelector("a")?.getAttribute("href") || "";
 
-  cards.push({
-    company,
-    description,
-    link
-  });
+      const link =
+        "https://www.biohackingcompanies.com" + path;
 
-});
-/* RANDOM ORDER */
+      cards.push({
+        company,
+        description,
+        link
+      });
 
-cards.sort(()=>Math.random()-0.5);
+    });
 
-/* LIMIT TO 12 */
+    /* RANDOM ORDER */
 
-cards = cards.slice(0,12);
+    cards.sort(() => Math.random() - 0.5);
 
-/* CREATE CARDS */
+    /* LIMIT TO 12 CARDS */
 
-cards.forEach(c=>{
+    cards = cards.slice(0,12);
 
-  const card=document.createElement("a");
+    /* CREATE CARD ELEMENTS */
 
-  card.className="review-card";
-  card.href=c.link;
-  card.target="_blank";
+    cards.forEach(c => {
 
-  card.innerHTML=`
-    <div class="review-company">${c.company}</div>
-    <div class="review-stars">★★★★★</div>
-    <div class="review-text">${c.description}</div>
-    <div class="review-footer">
-      <span>Verified Review</span>
-      <span>Read More →</span>
-    </div>
-  `;
+      const card = document.createElement("a");
 
-  container.appendChild(card);
+      card.className = "review-card";
+      card.href = c.link;
+      card.target = "_blank";
 
-});
+      card.innerHTML = `
+        <div class="review-company">${c.company}</div>
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">${c.description}</div>
+        <div class="review-footer">
+          <span>Verified Review</span>
+          <span>Read More →</span>
+        </div>
+      `;
+
+      container.appendChild(card);
+
+    });
 
   }
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML=
+    document.getElementById("reviews").innerHTML =
     "Unable to load reviews.";
 
     console.error(err);
@@ -118,9 +121,11 @@ cards.forEach(c=>{
 
 loadReviews();
 
+/* OPTIONAL: reload every 30 seconds for new random cards */
+
+setInterval(loadReviews, 30000);
+
 </script>
-
-
 
 </body>
 </html>
