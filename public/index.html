@@ -38,7 +38,8 @@ async function loadReviews(){
 
     container.innerHTML="";
 
-    const uniqueCompanies = {};
+   const reviews = doc.querySelectorAll(".module.search_result");
+
 let cards = [];
 
 reviews.forEach(r => {
@@ -48,14 +49,14 @@ reviews.forEach(r => {
     r.querySelector("h3")?.innerText ||
     "Company";
 
-  if (uniqueCompanies[company]) return;
-
-  uniqueCompanies[company] = true;
-
   let description =
     r.querySelectorAll("p")[1]?.innerText ||
     r.querySelector("p")?.innerText ||
     "";
+
+  if(description.length > 140){
+    description = description.substring(0,137)+"...";
+  }
 
   const path =
     r.querySelector("a")?.getAttribute("href") || "";
@@ -63,10 +64,13 @@ reviews.forEach(r => {
   const link =
     "https://www.biohackingcompanies.com" + path;
 
-  cards.push({ company, description, link });
+  cards.push({
+    company,
+    description,
+    link
+  });
 
 });
-
 /* RANDOM ORDER */
 
 cards.sort(()=>Math.random()-0.5);
