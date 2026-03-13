@@ -24,10 +24,10 @@ try{
 const res = await fetch("/api/reviews");
 const json = await res.json();
 
-const container = document.querySelector(".recent_reviews .row");
+const container = document.getElementById("reviews");
 
 if(!container){
-console.error("Recent reviews container not found");
+console.error("Reviews container not found");
 return;
 }
 
@@ -41,11 +41,7 @@ const doc = parser.parseFromString(json.message,"text/html");
 
 const reviews = doc.querySelectorAll(".module.search_result");
 
-/* clear previous cards */
-
 container.innerHTML="";
-
-/* remove duplicate companies */
 
 const seen = new Set();
 let cards=[];
@@ -60,23 +56,17 @@ r.querySelector("h3")?.innerText ||
 if(seen.has(company)) return;
 seen.add(company);
 
-/* description */
-
 let description =
 r.querySelector("p")?.innerText || "";
 
 if(description.length>120){
-description=description.substring(0,117)+"...";
+description = description.substring(0,117)+"...";
 }
-
-/* logo */
 
 const logo =
 r.querySelector("img.review_photo")?.src ||
 r.querySelector("img")?.src ||
 "";
-
-/* link */
 
 const path =
 r.querySelector("a")?.getAttribute("href") || "";
@@ -93,21 +83,21 @@ link
 
 });
 
-/* randomize */
+/* RANDOM */
 
 cards.sort(()=>Math.random()-0.5);
 
-/* limit */
+/* LIMIT */
 
-cards=cards.slice(0,12);
+cards = cards.slice(0,12);
 
-/* build cards using original CSS */
+/* BUILD */
 
 cards.forEach(c=>{
 
 const card=document.createElement("div");
 
-card.className="member-review col-sm-6 col-md-3";
+card.className="member-review";
 
 card.innerHTML=`
 
@@ -123,12 +113,8 @@ card.innerHTML=`
 <a href="${c.link}">${c.company}</a>
 </div>
 
-<div class="star_rating pull-right">
-<i class="fa fa-star"></i>
-<i class="fa fa-star"></i>
-<i class="fa fa-star"></i>
-<i class="fa fa-star"></i>
-<i class="fa fa-star"></i>
+<div class="star_rating">
+★★★★★
 </div>
 
 <p>${c.description}</p>
