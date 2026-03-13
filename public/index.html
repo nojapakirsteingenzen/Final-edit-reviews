@@ -42,19 +42,11 @@ async function loadReviews(){
 
     container.innerHTML="";
 
-    /* CONVERT TO ARRAY */
-
-    let reviewArray = Array.from(reviews);
-
-    /* RANDOMIZE ORDER */
-
-    reviewArray.sort(()=>Math.random()-0.5);
-
     const companies={};
 
     let count=0;
 
-    for(const r of reviewArray){
+    for(const r of reviews){
 
       if(count>=12) break;
 
@@ -69,6 +61,12 @@ async function loadReviews(){
 
       if(companies[company]) continue;
       companies[company]=true;
+
+      /* REVIEW TITLE */
+
+      const title =
+        r.querySelector(".review-title")?.innerText ||
+        "";
 
       /* DESCRIPTION */
 
@@ -92,6 +90,17 @@ async function loadReviews(){
         r.querySelector("a")?.href ||
         "#";
 
+      /* REAL STAR RATING */
+
+      const stars =
+        r.querySelectorAll(".fa-star").length || 5;
+
+      let starHTML="";
+
+      for(let i=0;i<stars;i++){
+        starHTML += "★";
+      }
+
       /* CREATE CARD */
 
       const card=document.createElement("a");
@@ -110,11 +119,13 @@ async function loadReviews(){
 
           <div class="review-company">${company}</div>
 
-          <div class="review-stars">★★★★★</div>
+          <div class="review-stars">${starHTML}</div>
 
         </div>
 
       </div>
+
+      <div class="review-title">${title}</div>
 
       <div class="review-text">
       ${description}
@@ -151,3 +162,4 @@ loadReviews();
 
 </body>
 </html>
+
