@@ -7,9 +7,98 @@
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
 
-<link rel="stylesheet" href="style.css">
-
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+font-family:'Open Sans',sans-serif;
+background:#f5f5f5;
+margin:0;
+padding:40px;
+}
+
+/* GRID */
+
+#reviews{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:25px;
+max-width:1200px;
+margin:auto;
+}
+
+/* CARD */
+
+.review-card{
+background:#fff;
+border-radius:12px;
+padding:20px;
+box-shadow:0 2px 12px rgba(0,0,0,0.08);
+text-decoration:none;
+color:#333;
+transition:0.3s;
+display:block;
+}
+
+.review-card:hover{
+transform:translateY(-4px);
+}
+
+/* HEADER */
+
+.review-header{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:10px;
+}
+
+/* LOGO */
+
+.review-logo{
+width:40px;
+height:40px;
+object-fit:contain;
+border-radius:6px;
+flex-shrink:0;
+}
+
+/* COMPANY */
+
+.review-company{
+font-weight:600;
+font-size:16px;
+}
+
+/* STARS */
+
+.review-stars{
+color:#f4a623;
+font-size:14px;
+margin-top:2px;
+}
+
+/* REVIEW TEXT */
+
+.review-text{
+font-size:14px;
+color:#555;
+line-height:1.5;
+margin-top:10px;
+}
+
+/* FOOTER */
+
+.review-footer{
+display:flex;
+justify-content:space-between;
+margin-top:15px;
+font-size:12px;
+color:#888;
+}
+
+</style>
 
 </head>
 
@@ -21,131 +110,147 @@
 
 async function loadReviews(){
 
-  try{
+try{
 
-    const res = await fetch("/api/reviews");
-    const json = await res.json();
+const res = await fetch("/api/reviews");
+const json = await res.json();
 
-    const container = document.getElementById("reviews");
+const container = document.getElementById("reviews");
 
-    if(!json.message){
-      container.innerHTML="No reviews available.";
-      return;
-    }
+if(!json.message){
+container.innerHTML="No reviews available.";
+return;
+}
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(json.message,"text/html");
+/* PARSE HTML RESPONSE */
 
-    /* GET REVIEWS */
+const parser = new DOMParser();
+const doc = parser.parseFromString(json.message,"text/html");
 
-    const reviews = doc.querySelectorAll(".recent_reviews .member-review");
+/* GET REVIEW ELEMENTS */
 
-    container.innerHTML="";
+const reviews = doc.querySelectorAll(".module.search_result");
 
-    /* CONVERT TO ARRAY */
+/* CLEAR CONTAINER */
 
-    let reviewArray = Array.from(reviews);
+container.innerHTML="";
 
-    /* RANDOMIZE ORDER */
+/* CONVERT TO ARRAY */
 
-    reviewArray.sort(()=>Math.random()-0.5);
+let reviewArray = Array.from(reviews);
 
-    const companies={};
+/* RANDOMIZE */
 
-    let count=0;
+reviewArray.sort(()=>Math.random()-0.5);
 
-    for(const r of reviewArray){
+/* TRACK UNIQUE COMPANIES */
 
-      if(count>=12) break;
+const companies = {};
 
-      /* COMPANY NAME */
+let count = 0;
 
-      const company =
-        r.querySelector(".review-title")?.innerText ||
-        r.querySelector("h3")?.innerText ||
-        "Company";
+for(const r of reviewArray){
 
-      /* PREVENT DUPLICATE COMPANIES */
+if(count >= 12) break;
 
-      if(companies[company]) continue;
-      companies[company]=true;
+/* COMPANY NAME */
 
-      /* DESCRIPTION */
+const company =
+r.querySelector(".notranslate")?.innerText ||
+r.querySelector("h3")?.innerText ||
+"Company";
 
-      let description =
-        r.querySelector(".member-review-info p")?.innerText ||
-        "";
+/* PREVENT DUPLICATE COMPANIES */
 
-      if(description.length>140){
-        description = description.substring(0,137)+"...";
-      }
+if(companies[company]) continue;
+companies[company] = true;
 
-      /* COMPANY LOGO */
+/* DESCRIPTION */
 
-      const logo =
-        r.querySelector(".member-review-image img")?.src ||
-        "";
+let description =
+r.querySelector("p")?.innerText || "";
 
-      /* COMPANY LINK */
+description = description.replace(/<[^>]*>?/gm,'');
 
-      const link =
-        r.querySelector("a")?.href ||
-        "#";
+if(description.length > 140){
+description = description.substring(0,137) + "...";
+}
 
-      /* CREATE CARD */
+/* COMPANY LOGO */
 
-      const card=document.createElement("a");
+const logoPath =
+r.querySelector("img")?.getAttribute("src") || "";
 
-      card.className="review-card";
-      card.href=link;
-      card.target="_blank";
+const logo =
+logoPath.startsWith("http")
+? logoPath
+: "https://www.biohackingcompanies.com" + logoPath;
 
-      card.innerHTML=`
+/* REVIEW LINK */
 
-      <div class="review-header">
+const path =
+r.querySelector("a")?.getAttribute("href") || "";
 
-        <img class="review-logo" src="${logo}"/>
+const link =
+"https://www.biohackingcompanies.com" + path;
 
-        <div>
+/* CREATE CARD */
 
-          <div class="review-company">${company}</div>
+const card = document.createElement("a");
 
-          <div class="review-stars">★★★★★</div>
+card.className="review-card";
+card.href=link;
+card.target="_blank";
 
-        </div>
+card.innerHTML = `
 
-      </div>
+<div class="review-header">
 
-      <div class="review-text">
-      ${description}
-      </div>
+<img class="review-logo" src="${logo}" alt="${company}">
 
-      <div class="review-footer">
-        <span>Verified Review</span>
-        <span>Read More →</span>
-      </div>
+<div>
 
-      `;
+<div class="review-company">${company}</div>
 
-      container.appendChild(card);
+<div class="review-stars">★★★★★</div>
 
-      count++;
+</div>
 
-    }
+</div>
 
-  }
+<div class="review-text">${description}</div>
 
-  catch(err){
+<div class="review-footer">
+<span>Verified Review</span>
+<span>Read More →</span>
+</div>
 
-    document.getElementById("reviews").innerHTML="Unable to load reviews.";
+`;
 
-    console.error(err);
+container.appendChild(card);
 
-  }
+count++;
 
 }
 
+}
+
+catch(err){
+
+document.getElementById("reviews").innerHTML="Unable to load reviews.";
+console.error(err);
+
+}
+
+}
+
+/* LOAD */
+
 loadReviews();
+
+/* OPTIONAL AUTO REFRESH */
+
+setInterval(loadReviews,30000);
 
 </script>
 
