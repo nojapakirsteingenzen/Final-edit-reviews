@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Newest Reviews</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div id="reviews"></div>
+
+<script>
+
+async function loadReviews(){
+
+  try{
+
+    const res = await fetch("/api/reviews");
+    const json = await res.json();
+
+    const container = document.getElementById("reviews");
+
+    if(!json.message){
+      container.innerHTML="No reviews available.";
+      return;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(json.message,"text/html");
+
+   const reviews = doc.querySelectorAll(".recent_reviews .member-review");
+
+    container.innerHTML="";
+
+    const companies={};
+    let count=0;
+
+    reviews.forEach(r=>{
+
+  if(count>=8) return;
+
+  const company =
+    r.querySelector(".review-title")?.innerText ||
+    r.querySelector("h3")?.innerText ||
+    "Company";
+
+  const description =
+    r.querySelector(".member-review-info p")?.innerText ||
+    "";
+
+  const logo =
+    r.querySelector(".member-review-image img")?.src || "";
+
+  const link =
+    r.querySelector("a")?.href || "#";
+
+  const card=document.createElement("a");
+
+  card.className="review-card";
+  card.href=link;
+  card.target="_blank";
+
+  card.innerHTML=`
+
+  <div class="review-header">
+
+    <img class="review-logo" src="${logo}"/>
+
+    <div>
+
+      <div class="review-company">${company}</div>
+
+      <div class="review-stars">★★★★★</div>
+
+    </div>
+
+  </div>
+
+  <div class="review-text">
+  ${description}
+  </div>
+
+  <div class="review-footer">
+    <span>Verified Review</span>
+    <span>Read More →</span>
+  </div>
+
+  `;
+
+  container.appendChild(card);
+
+  count++;
+
+});
+
+  }
+
+  catch(err){
+
+    document.getElementById("reviews").innerHTML=
+    "Unable to load reviews.";
+
+    console.error(err);
+
+  }
+
+}
+
+loadReviews();
+
+</script>
+
+</body>
+</html>
