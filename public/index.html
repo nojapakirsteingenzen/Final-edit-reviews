@@ -31,12 +31,14 @@ async function loadReviews(){
       return;
     }
 
-    /* Convert HTML string to DOM */
+    /* convert API HTML into DOM */
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(json.message,"text/html");
 
-    const reviews = doc.querySelectorAll(".member-review");
+    /* correct selector */
+
+    const reviews = doc.querySelectorAll(".module.search_result");
 
     container.innerHTML = "";
 
@@ -47,24 +49,21 @@ async function loadReviews(){
       if(count >= 12) return;
 
       const company =
-        r.querySelector(".review-title")?.innerText ||
+        r.querySelector(".notranslate")?.innerText ||
+        r.querySelector("h3")?.innerText ||
         "Company";
 
       const description =
-        r.querySelector(".member-review-info p")?.innerText ||
+        r.querySelector(".review-description")?.innerText ||
         "";
 
       const logo =
-        r.querySelector(".member-review-image img")?.src ||
+        r.querySelector("img")?.src ||
         "";
 
       const link =
         r.querySelector("a")?.href ||
         "#";
-
-      const stars =
-        r.querySelector(".stars")?.innerHTML ||
-        "★★★★★";
 
       const card = document.createElement("a");
 
@@ -75,21 +74,16 @@ async function loadReviews(){
       card.innerHTML = `
 
         <div class="review-header">
-
           <img class="review-logo" src="${logo}" />
 
           <div>
-
             <div class="review-company">${company}</div>
-
-            <div class="review-stars">${stars}</div>
-
+            <div class="review-stars">★★★★★</div>
           </div>
-
         </div>
 
         <div class="review-text">
-        ${description}
+          ${description}
         </div>
 
       `;
@@ -116,6 +110,7 @@ async function loadReviews(){
 loadReviews();
 
 </script>
+
 
 
 </body>
