@@ -41,75 +41,67 @@ async function loadReviews(){
     const companies = {};
     let cards = [];
 
-    reviews.forEach(r=>{
+reviews.forEach(r=>{
 
-      const company =
-        r.querySelector(".notranslate")?.innerText ||
-        r.querySelector("h3")?.innerText ||
-        "Company";
+  const company =
+    r.querySelector(".notranslate")?.innerText ||
+    r.querySelector("h3")?.innerText ||
+    "Company";
 
-      if(companies[company]) return;
-      companies[company] = true;
+  let description =
+    r.querySelectorAll("p")[1]?.innerText ||
+    r.querySelector("p")?.innerText ||
+    "";
 
-      let description =
-        r.querySelectorAll("p")[1]?.innerText ||
-        r.querySelector("p")?.innerText ||
-        "";
+  if(description.length > 140){
+    description = description.substring(0,137)+"...";
+  }
 
-      if(description.length>140){
-        description = description.substring(0,137)+"...";
-      }
+  const path =
+    r.querySelector("a")?.getAttribute("href") || "";
 
-      const path =
-        r.querySelector("a")?.getAttribute("href") || "";
+  const link =
+    "https://www.biohackingcompanies.com"+path;
 
-      const link =
-        "https://www.biohackingcompanies.com"+path;
+  cards.push({
+    company,
+    description,
+    link
+  });
 
-      cards.push({
-        company,
-        description,
-        link
-      });
+});
 
-    });
+/* RANDOM ORDER */
 
-    /* RANDOMIZE */
+cards.sort(()=>Math.random()-0.5);
 
-    cards.sort(()=>Math.random()-0.5);
+/* LIMIT TO 12 */
 
-    /* LIMIT TO 12 */
+cards = cards.slice(0,12);
 
-    cards = cards.slice(0,12);
+/* CREATE CARDS */
 
-    /* CREATE CARDS */
+cards.forEach(c=>{
 
-    cards.forEach(c=>{
+  const card=document.createElement("a");
 
-      const card=document.createElement("a");
+  card.className="review-card";
+  card.href=c.link;
+  card.target="_blank";
 
-      card.className="review-card";
-      card.href=c.link;
-      card.target="_blank";
+  card.innerHTML=`
+    <div class="review-company">${c.company}</div>
+    <div class="review-stars">★★★★★</div>
+    <div class="review-text">${c.description}</div>
+    <div class="review-footer">
+      <span>Verified Review</span>
+      <span>Read More →</span>
+    </div>
+  `;
 
-      card.innerHTML=`
+  container.appendChild(card);
 
-        <div class="review-company">${c.company}</div>
-
-        <div class="review-stars">★★★★★</div>
-
-        <div class="review-text">${c.description}</div>
-
-        <div class="review-footer">
-          <span>Verified Review</span>
-          <span>Read More →</span>
-        </div>
-
-      `;
-
-      container.appendChild(card);
-
-    });
+});
 
   }
 
