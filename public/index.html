@@ -38,36 +38,32 @@ async function loadReviews(){
 
     container.innerHTML="";
 
-    const companies = {};
-    let cards = [];
+    const uniqueCompanies = {};
+let cards = [];
 
-reviews.forEach(r=>{
+reviews.forEach(r => {
 
   const company =
     r.querySelector(".notranslate")?.innerText ||
     r.querySelector("h3")?.innerText ||
     "Company";
 
+  if (uniqueCompanies[company]) return;
+
+  uniqueCompanies[company] = true;
+
   let description =
     r.querySelectorAll("p")[1]?.innerText ||
     r.querySelector("p")?.innerText ||
     "";
 
-  if(description.length > 140){
-    description = description.substring(0,137)+"...";
-  }
-
   const path =
     r.querySelector("a")?.getAttribute("href") || "";
 
   const link =
-    "https://www.biohackingcompanies.com"+path;
+    "https://www.biohackingcompanies.com" + path;
 
-  cards.push({
-    company,
-    description,
-    link
-  });
+  cards.push({ company, description, link });
 
 });
 
