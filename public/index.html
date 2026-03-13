@@ -2,6 +2,8 @@
 <html>
 <head>
 
+<link rel="icon" href="favicon.ico">
+
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
 
@@ -13,150 +15,137 @@
 
 <body>
 
-<!-- THIS IS REQUIRED -->
 <div id="reviews"></div>
 
 <script>
 
 async function loadReviews(){
 
-try{
+  try{
 
-const res = await fetch("/api/reviews");
-const json = await res.json();
+    const res = await fetch("/api/reviews");
+    const json = await res.json();
 
-const container=document.getElementById("reviews");
+    const container = document.getElementById("reviews");
 
-/* CHECK MESSAGE INSTEAD OF DATA */
+    if(!json.message){
+      container.innerHTML="No reviews available.";
+      return;
+    }
 
-if(!json.message){
-container.innerHTML="No reviews available.";
-return;
-}
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(json.message,"text/html");
 
-/* PARSE HTML */
+    /* GET REVIEWS */
 
-const parser=new DOMParser();
-const doc=parser.parseFromString(json.message,"text/html");
+    const reviews = doc.querySelectorAll(".recent_reviews .member-review");
 
-const reviews=doc.querySelectorAll(".module.search_result");
+    container.innerHTML="";
 
-container.innerHTML="";
+    /* CONVERT TO ARRAY */
 
-let cards=[];
-let seenCompanies=new Set();
+    let reviewArray = Array.from(reviews);
 
-reviews.forEach(r=>{
+    /* RANDOMIZE ORDER */
 
-const company =
-r.querySelector(".notranslate")?.innerText ||
-r.querySelector("h3")?.innerText ||
-"Company";
+    reviewArray.sort(()=>Math.random()-0.5);
 
-/* REMOVE DUPLICATES */
+    const companies={};
 
-if(seenCompanies.has(company)) return;
-seenCompanies.add(company);
+    let count=0;
 
-/* DESCRIPTION */
+    for(const r of reviewArray){
 
-let description =
-r.querySelectorAll("p")[1]?.innerText ||
-r.querySelector("p")?.innerText ||
-"";
+      if(count>=12) break;
 
-description=description.replace(/<[^>]*>?/gm,'');
+      /* COMPANY NAME */
 
-if(description.length>140){
-description=description.substring(0,137)+"...";
-}
+      const company =
+        r.querySelector(".review-title")?.innerText ||
+        r.querySelector("h3")?.innerText ||
+        "Company";
 
-/* LINK */
+      /* PREVENT DUPLICATE COMPANIES */
 
-const path=r.querySelector("a")?.getAttribute("href") || "";
-const link="https://www.biohackingcompanies.com"+path;
+      if(companies[company]) continue;
+      companies[company]=true;
 
-/* LOGO */
+      /* DESCRIPTION */
 
-const logoPath=r.querySelector("img")?.getAttribute("src") || "";
-const logo="https://www.biohackingcompanies.com"+logoPath;
+      let description =
+        r.querySelector(".member-review-info p")?.innerText ||
+        "";
 
-cards.push({
-company,
-description,
-link,
-logo
-});
+      if(description.length>140){
+        description = description.substring(0,137)+"...";
+      }
 
-});
+      /* COMPANY LOGO */
 
-/* RANDOMIZE */
+      const logo =
+        r.querySelector(".member-review-image img")?.src ||
+        "";
 
-cards.sort(()=>Math.random()-0.5);
+      /* COMPANY LINK */
 
-/* LIMIT */
+      const link =
+        r.querySelector("a")?.href ||
+        "#";
 
-cards=cards.slice(0,12);
+      /* CREATE CARD */
 
-/* CREATE CARDS */
+      const card=document.createElement("a");
 
-cards.forEach(c=>{
+      card.className="review-card";
+      card.href=link;
+      card.target="_blank";
 
-const card=document.createElement("a");
+      card.innerHTML=`
 
-card.className="review-card";
-card.href=c.link;
-card.target="_blank";
+      <div class="review-header">
 
-card.innerHTML=`
+        <img class="review-logo" src="${logo}"/>
 
-<div class="review-header">
+        <div>
 
-<img class="review-logo" src="${c.logo}" alt="${c.company}">
+          <div class="review-company">${company}</div>
 
-<div>
+          <div class="review-stars">★★★★★</div>
 
-<div class="review-company">${c.company}</div>
+        </div>
 
-<div class="review-stars">★★★★★</div>
+      </div>
 
-</div>
+      <div class="review-text">
+      ${description}
+      </div>
 
-</div>
+      <div class="review-footer">
+        <span>Verified Review</span>
+        <span>Read More →</span>
+      </div>
 
-<div class="review-text">${c.description}</div>
+      `;
 
-<div class="review-footer">
+      container.appendChild(card);
 
-<span>Verified Review</span>
+      count++;
 
-<span>Read More →</span>
+    }
 
-</div>
+  }
 
-`;
+  catch(err){
 
-container.appendChild(card);
+    document.getElementById("reviews").innerHTML="Unable to load reviews.";
 
-});
+    console.error(err);
 
-}
-
-catch(err){
-
-document.getElementById("reviews").innerHTML="Unable to load reviews.";
-
-console.error(err);
-
-}
+  }
 
 }
 
 loadReviews();
-
-/* REFRESH EVERY 30s */
-
-setInterval(loadReviews,30000);
 
 </script>
 
