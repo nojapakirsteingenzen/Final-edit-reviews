@@ -27,70 +27,87 @@ async function loadReviews(){
     const container = document.getElementById("reviews");
 
     if(!json.message){
-      container.innerHTML = "No reviews available.";
+      container.innerHTML="No reviews available.";
       return;
     }
-
-    /* convert API HTML into DOM */
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(json.message,"text/html");
 
-    /* correct selector */
-
     const reviews = doc.querySelectorAll(".module.search_result");
 
-    container.innerHTML = "";
+    container.innerHTML="";
 
-    let count = 0;
+    const companies = {};
+    let cards = [];
 
-    reviews.forEach(r => {
-
-      if(count >= 12) return;
+    reviews.forEach(r=>{
 
       const company =
         r.querySelector(".notranslate")?.innerText ||
         r.querySelector("h3")?.innerText ||
         "Company";
 
-      const description =
-        r.querySelector(".review-description")?.innerText ||
+      if(companies[company]) return;
+      companies[company] = true;
+
+      let description =
+        r.querySelectorAll("p")[1]?.innerText ||
+        r.querySelector("p")?.innerText ||
         "";
 
-      const logo =
-        r.querySelector("img")?.src ||
-        "";
+      if(description.length>140){
+        description = description.substring(0,137)+"...";
+      }
+
+      const path =
+        r.querySelector("a")?.getAttribute("href") || "";
 
       const link =
-        r.querySelector("a")?.href ||
-        "#";
+        "https://www.biohackingcompanies.com"+path;
 
-      const card = document.createElement("a");
+      cards.push({
+        company,
+        description,
+        link
+      });
 
-      card.className = "review-card";
-      card.href = link;
-      card.target = "_blank";
+    });
 
-      card.innerHTML = `
+    /* RANDOMIZE */
 
-        <div class="review-header">
-          <img class="review-logo" src="${logo}" />
+    cards.sort(()=>Math.random()-0.5);
 
-          <div>
-            <div class="review-company">${company}</div>
-            <div class="review-stars">★★★★★</div>
-          </div>
-        </div>
+    /* LIMIT TO 12 */
 
-        <div class="review-text">
-          ${description}
+    cards = cards.slice(0,12);
+
+    /* CREATE CARDS */
+
+    cards.forEach(c=>{
+
+      const card=document.createElement("a");
+
+      card.className="review-card";
+      card.href=c.link;
+      card.target="_blank";
+
+      card.innerHTML=`
+
+        <div class="review-company">${c.company}</div>
+
+        <div class="review-stars">★★★★★</div>
+
+        <div class="review-text">${c.description}</div>
+
+        <div class="review-footer">
+          <span>Verified Review</span>
+          <span>Read More →</span>
         </div>
 
       `;
 
       container.appendChild(card);
-
-      count++;
 
     });
 
@@ -98,8 +115,8 @@ async function loadReviews(){
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML =
-      "Unable to load reviews.";
+    document.getElementById("reviews").innerHTML=
+    "Unable to load reviews.";
 
     console.error(err);
 
