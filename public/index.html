@@ -19,121 +19,142 @@
 
 async function loadReviews(){
 
-try{
+  try{
 
-const res = await fetch("/api/reviews");
-const json = await res.json();
+    const res = await fetch("/api/reviews");
+    const json = await res.json();
 
-const container = document.getElementById("reviews");
+    const container = document.getElementById("reviews");
 
-if(!container){
-console.error("Reviews container not found");
-return;
-}
+    if(!json.message){
+      container.innerHTML="No reviews available.";
+      return;
+    }
 
-if(!json.message){
-container.innerHTML="No reviews available.";
-return;
-}
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(json.message,"text/html");
 
-const parser = new DOMParser();
-const doc = parser.parseFromString(json.message,"text/html");
+    const reviews = doc.querySelectorAll(".module.search_result");
 
-const reviews = doc.querySelectorAll(".module.search_result");
+    container.innerHTML="";
 
-container.innerHTML="";
-
-const seen = new Set();
-let cards=[];
+    let cards = [];
 
 reviews.forEach(r=>{
 
-const company =
-r.querySelector(".notranslate")?.innerText ||
-r.querySelector("h3")?.innerText ||
-"Company";
+  /* COMPANY NAME */
 
-if(seen.has(company)) return;
-seen.add(company);
+  const company =
+    r.querySelector(".notranslate")?.innerText ||
+    r.querySelector("h3")?.innerText ||
+    "Company";
 
-let description =
-r.querySelector("p")?.innerText || "";
 
-if(description.length>120){
-description = description.substring(0,117)+"...";
+  /* COMPANY LOGO */
+
+  const logo =
+    r.querySelector(".member-review-image img")?.src ||
+    "";
+
+
+  /* DESCRIPTION */
+
+  let description =
+    r.querySelectorAll("p")[1]?.innerText ||
+    r.querySelector("p")?.innerText ||
+    "";
+
+  if(description.length > 140){
+    description = description.substring(0,137)+"...";
+  }
+
+
+  /* COMPANY LINK */
+
+  const path =
+    r.querySelector("a")?.getAttribute("href") || "";
+
+  const link =
+    "https://www.biohackingcompanies.com"+path;
+
+
+  /* STORE CARD DATA */
+
+  cards.push({
+    company,
+    description,
+    link,
+    logo
+  });
+
+});
+
+
+/* DEDUPLICATE BY COMPANY (keep first occurrence) */
+
+{
+  const unique = new Map();
+  cards.forEach(c => {
+    const key = (c.company || "").trim();
+    if (key && !unique.has(key)) unique.set(key, c);
+  });
+  cards = Array.from(unique.values());
 }
 
-const logo =
-r.querySelector("img.review_photo")?.src ||
-r.querySelector("img")?.src ||
-"";
+/* RANDOM ORDER */
 
-const path =
-r.querySelector("a")?.getAttribute("href") || "";
+cards.sort(() => Math.random() - 0.5);
 
-const link =
-"https://www.biohackingcompanies.com"+path;
 
-cards.push({
-company,
-description,
-logo,
-link
-});
+/* LIMIT TO 12 */
 
-});
+cards = cards.slice(0, 12);
 
-/* RANDOM */
 
-cards.sort(()=>Math.random()-0.5);
-
-/* LIMIT */
-
-cards = cards.slice(0,12);
-
-/* BUILD */
+    
+/* CREATE CARDS */
 
 cards.forEach(c=>{
 
-const card=document.createElement("div");
+  const card=document.createElement("a");
 
-card.className="member-review";
+  card.className="review-card";
+  card.href=c.link;
+  card.target="_blank";
 
-card.innerHTML=`
+  card.innerHTML=`
 
-<div class="member-review-image">
-<a href="${c.link}">
-<img class="img-rounded xs-bmargin review_photo" src="${c.logo}">
-</a>
-</div>
+    <div class="review-logo">
+      <img src="${c.logo}" alt="${c.company}">
+    </div>
 
-<div class="member-review-info">
+    <div class="review-company">${c.company}</div>
 
-<div class="review-title">
-<a href="${c.link}">${c.company}</a>
-</div>
+    <div class="review-stars">★★★★★</div>
 
-<div class="star_rating">
-★★★★★
-</div>
+    <div class="review-text">${c.description}</div>
 
-<p>${c.description}</p>
+    <div class="review-footer">
+      <span>Verified Review</span>
+      <span>Read More →</span>
+    </div>
 
-</div>
+  `;
 
-`;
-
-container.appendChild(card);
+  container.appendChild(card);
 
 });
 
-}
+  }
 
-catch(err){
+  catch(err){
 
-console.error(err);
+    document.getElementById("reviews").innerHTML=
+    "Unable to load reviews.";
 
-}
+    console.error(err);
+
+  }
 
 }
 
