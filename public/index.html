@@ -2,10 +2,10 @@
 <html>
 <head>
 
-<link rel="icon" href="favicon.ico">
-
 <meta charset="UTF-8">
 <title>Newest Reviews</title>
+
+<link rel="icon" href="favicon.ico">
 
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -13,79 +13,73 @@
 
 body{
 font-family:'Open Sans',sans-serif;
-background:#f5f5f5;
-margin:0;
-padding:40px;
+background:#ffffff;
+margin:40px;
+color:#2a2a3a;
 }
 
 /* GRID */
 
 #reviews{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:25px;
-max-width:1200px;
-margin:auto;
+grid-template-columns:repeat(4,1fr);
+gap:18px;
+margin-top:40px;
 }
 
 /* CARD */
 
 .review-card{
-background:#fff;
+display:flex;
+flex-direction:column;
+gap:10px;
+padding:18px;
+background:#f5f5f7;
 border-radius:12px;
-padding:20px;
-box-shadow:0 2px 12px rgba(0,0,0,0.08);
+border:1px solid rgba(0,0,0,.08);
 text-decoration:none;
 color:#333;
-transition:0.3s;
-display:block;
+transition:.25s;
 }
 
 .review-card:hover{
 transform:translateY(-4px);
-}
-
-/* HEADER */
-
-.review-header{
-display:flex;
-align-items:center;
-gap:12px;
-margin-bottom:10px;
+box-shadow:0 10px 30px rgba(0,0,0,.1);
 }
 
 /* LOGO */
 
 .review-logo{
-width:40px;
-height:40px;
+text-align:center;
+margin-bottom:10px;
+}
+
+.review-logo img{
+max-width:120px;
+max-height:60px;
 object-fit:contain;
-border-radius:6px;
-flex-shrink:0;
 }
 
 /* COMPANY */
 
 .review-company{
-font-weight:600;
-font-size:16px;
+font-weight:700;
+font-size:13px;
 }
 
 /* STARS */
 
 .review-stars{
-color:#f4a623;
-font-size:14px;
-margin-top:2px;
+color:#ff9500;
+font-size:13px;
 }
 
-/* REVIEW TEXT */
+/* TEXT */
 
 .review-text{
-font-size:14px;
-color:#555;
-line-height:1.5;
-margin-top:10px;
+font-size:12px;
+line-height:1.6;
+color:#666;
 }
 
 /* FOOTER */
@@ -93,9 +87,23 @@ margin-top:10px;
 .review-footer{
 display:flex;
 justify-content:space-between;
-margin-top:15px;
-font-size:12px;
-color:#888;
+font-size:10px;
+color:#999;
+margin-top:auto;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1024px){
+#reviews{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+@media(max-width:640px){
+#reviews{
+grid-template-columns:1fr;
+}
 }
 
 </style>
@@ -122,48 +130,37 @@ container.innerHTML="No reviews available.";
 return;
 }
 
-/* PARSE HTML RESPONSE */
+/* PARSE HTML */
 
 const parser = new DOMParser();
 const doc = parser.parseFromString(json.message,"text/html");
 
-/* GET REVIEW ELEMENTS */
+/* GET REVIEWS */
 
 const reviews = doc.querySelectorAll(".module.search_result");
 
-/* CLEAR CONTAINER */
+/* CLEAR GRID */
 
 container.innerHTML="";
 
-/* CONVERT TO ARRAY */
+/* STORAGE */
 
-let reviewArray = Array.from(reviews);
+let cards=[];
+let seenCompanies=new Set();
 
-/* RANDOMIZE */
+/* LOOP */
 
-reviewArray.sort(()=>Math.random()-0.5);
-
-/* TRACK UNIQUE COMPANIES */
-
-const companies = {};
-
-let count = 0;
-
-for(const r of reviewArray){
-
-if(count >= 12) break;
-
-/* COMPANY NAME */
+reviews.forEach(r=>{
 
 const company =
 r.querySelector(".notranslate")?.innerText ||
 r.querySelector("h3")?.innerText ||
 "Company";
 
-/* PREVENT DUPLICATE COMPANIES */
+/* REMOVE DUPLICATES */
 
-if(companies[company]) continue;
-companies[company] = true;
+if(seenCompanies.has(company)) return;
+seenCompanies.add(company);
 
 /* DESCRIPTION */
 
@@ -172,53 +169,70 @@ r.querySelector("p")?.innerText || "";
 
 description = description.replace(/<[^>]*>?/gm,'');
 
-if(description.length > 140){
-description = description.substring(0,137) + "...";
+if(description.length>140){
+description=description.substring(0,137)+"...";
 }
 
-/* COMPANY LOGO */
+/* LOGO */
 
 const logoPath =
-r.querySelector("img")?.getAttribute("src") || "";
+r.querySelector("img.review_photo")?.getAttribute("src") ||
+r.querySelector("img")?.getAttribute("src") ||
+"";
 
 const logo =
 logoPath.startsWith("http")
 ? logoPath
-: "https://www.biohackingcompanies.com" + logoPath;
+: "https://www.biohackingcompanies.com"+logoPath;
 
-/* REVIEW LINK */
+/* LINK */
 
 const path =
 r.querySelector("a")?.getAttribute("href") || "";
 
 const link =
-"https://www.biohackingcompanies.com" + path;
+"https://www.biohackingcompanies.com"+path;
 
-/* CREATE CARD */
+/* STORE */
 
-const card = document.createElement("a");
+cards.push({
+company,
+description,
+logo,
+link
+});
+
+});
+
+/* RANDOMIZE */
+
+cards.sort(()=>Math.random()-0.5);
+
+/* LIMIT */
+
+cards=cards.slice(0,12);
+
+/* RENDER */
+
+cards.forEach(c=>{
+
+const card=document.createElement("a");
 
 card.className="review-card";
-card.href=link;
+card.href=c.link;
 card.target="_blank";
 
-card.innerHTML = `
+card.innerHTML=`
 
-<div class="review-header">
+<div class="review-logo">
+<img src="${c.logo}" alt="${c.company}">
+</div>
 
-<img class="review-logo" src="${logo}" alt="${company}">
-
-<div>
-
-<div class="review-company">${company}</div>
+<div class="review-company">${c.company}</div>
 
 <div class="review-stars">★★★★★</div>
 
-</div>
-
-</div>
-
-<div class="review-text">${description}</div>
+<div class="review-text">${c.description}</div>
 
 <div class="review-footer">
 <span>Verified Review</span>
@@ -229,22 +243,19 @@ card.innerHTML = `
 
 container.appendChild(card);
 
-count++;
-
-}
+});
 
 }
 
 catch(err){
 
 document.getElementById("reviews").innerHTML="Unable to load reviews.";
+
 console.error(err);
 
 }
 
 }
-
-/* LOAD */
 
 loadReviews();
 
