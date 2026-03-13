@@ -9,6 +9,23 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
+<style>
+
+.review-header{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.review-logo{
+width:40px;
+height:40px;
+border-radius:50%;
+object-fit:cover;
+}
+
+</style>
+
 </head>
 
 <body>
@@ -27,7 +44,7 @@ async function loadReviews(){
     const container = document.getElementById("reviews");
 
     if(!json.message){
-      container.innerHTML = "No reviews available.";
+      container.innerHTML="No reviews available.";
       return;
     }
 
@@ -36,70 +53,98 @@ async function loadReviews(){
 
     const reviews = doc.querySelectorAll(".module.search_result");
 
-    container.innerHTML = "";
+    container.innerHTML="";
 
-    let cards = [];
+    let cards=[];
+    let seenCompanies=new Set();
 
-    reviews.forEach(r => {
+    reviews.forEach(r=>{
 
       const company =
         r.querySelector(".notranslate")?.innerText ||
         r.querySelector("h3")?.innerText ||
         "Company";
 
+      /* skip duplicate companies */
+
+      if(seenCompanies.has(company)) return;
+      seenCompanies.add(company);
+
       let description =
         r.querySelectorAll("p")[1]?.innerText ||
         r.querySelector("p")?.innerText ||
         "";
 
-      /* remove html tags if any */
-
       description = description.replace(/<[^>]*>?/gm,'');
 
-      if(description.length > 140){
-        description = description.substring(0,137) + "...";
+      if(description.length>140){
+        description=description.substring(0,137)+"...";
       }
 
       const path =
         r.querySelector("a")?.getAttribute("href") || "";
 
       const link =
-        "https://www.biohackingcompanies.com" + path;
+        "https://www.biohackingcompanies.com"+path;
+
+      /* COMPANY LOGO */
+
+      const logo =
+        r.querySelector("img")?.getAttribute("src") || "";
+
+      const logoUrl =
+        "https://www.biohackingcompanies.com"+logo;
 
       cards.push({
         company,
         description,
-        link
+        link,
+        logo:logoUrl
       });
 
     });
 
     /* RANDOM ORDER */
 
-    cards.sort(() => Math.random() - 0.5);
+    cards.sort(()=>Math.random()-0.5);
 
-    /* LIMIT TO 12 CARDS */
+    /* LIMIT 12 */
 
-    cards = cards.slice(0,12);
+    cards=cards.slice(0,12);
 
-    /* CREATE CARD ELEMENTS */
+    /* CREATE CARDS */
 
-    cards.forEach(c => {
+    cards.forEach(c=>{
 
-      const card = document.createElement("a");
+      const card=document.createElement("a");
 
-      card.className = "review-card";
-      card.href = c.link;
-      card.target = "_blank";
+      card.className="review-card";
+      card.href=c.link;
+      card.target="_blank";
 
-      card.innerHTML = `
-        <div class="review-company">${c.company}</div>
-        <div class="review-stars">★★★★★</div>
-        <div class="review-text">${c.description}</div>
-        <div class="review-footer">
-          <span>Verified Review</span>
-          <span>Read More →</span>
+      card.innerHTML=`
+
+      <div class="review-header">
+
+        <img class="review-logo" src="${c.logo}" alt="${c.company}">
+
+        <div>
+
+          <div class="review-company">${c.company}</div>
+
+          <div class="review-stars">★★★★★</div>
+
         </div>
+
+      </div>
+
+      <div class="review-text">${c.description}</div>
+
+      <div class="review-footer">
+        <span>Verified Review</span>
+        <span>Read More →</span>
+      </div>
+
       `;
 
       container.appendChild(card);
@@ -110,8 +155,7 @@ async function loadReviews(){
 
   catch(err){
 
-    document.getElementById("reviews").innerHTML =
-    "Unable to load reviews.";
+    document.getElementById("reviews").innerHTML="Unable to load reviews.";
 
     console.error(err);
 
@@ -121,9 +165,9 @@ async function loadReviews(){
 
 loadReviews();
 
-/* OPTIONAL: reload every 30 seconds for new random cards */
+/* refresh every 30 seconds */
 
-setInterval(loadReviews, 30000);
+setInterval(loadReviews,30000);
 
 </script>
 
