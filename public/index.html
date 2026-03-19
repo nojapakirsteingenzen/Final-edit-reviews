@@ -186,7 +186,7 @@
 (function () {
   'use strict';
 
-  const BD = 'https://www.biohackingcompanies.com';
+  const API_URL = "https://final-edit-reviews-7nkcy2vb.vercel.app/api/reviews";
   const API_KEY = '38b2668904a5e2839b6106773444040b';
   const MAX = 12;
   const REFRESH = 5 * 60 * 1000;
@@ -304,50 +304,40 @@
   }
 
   /* ── Load Reviews ── */
-  async function load() {
+ 
+      async function load() {
 
-    showSkeleton();
+  showSkeleton();
 
-    try {
+  try {
 
-      const res = await fetch(BD + '/api/v2/users_reviews/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Api-Key': API_KEY
-        },
-        body: JSON.stringify({
-          limit: 200,
-          page: 1,
-          output_type: "array"
-        })
-      });
+    const res = await fetch("https://final-edit-reviews-7nkcy2vb.vercel.app/api/reviews");
 
-      const data = await res.json();
+    const data = await res.json();
 
-      let list = data.message || [];
+    let list = data.message || [];
 
-      if (!list.length) {
-        grid.innerHTML = "No reviews found.";
-        return;
-      }
-
-      // ✅ remove duplicates (latest per company)
-      list = uniqueLatest(list);
-
-      // ✅ randomize
-      list.sort(() => Math.random() - 0.5);
-
-      // ✅ limit display
-      list = list.slice(0, MAX);
-
-      grid.innerHTML = list.map(buildCard).join('');
-
-    } catch (err) {
-      grid.innerHTML = "Failed to load reviews.";
-      console.error(err);
+    if (!list.length) {
+      grid.innerHTML = "No reviews found.";
+      return;
     }
+
+    // remove duplicates (latest per company)
+    list = uniqueLatest(list);
+
+    // randomize
+    list.sort(() => Math.random() - 0.5);
+
+    // limit
+    list = list.slice(0, MAX);
+
+    grid.innerHTML = list.map(buildCard).join('');
+
+  } catch (err) {
+    grid.innerHTML = "Failed to load reviews.";
+    console.error(err);
   }
+}
 
   load();
   setInterval(load, REFRESH);
