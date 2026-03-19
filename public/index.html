@@ -1,137 +1,356 @@
-<!DOCTYPE html>
-<html>
-<head>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Open+Sans:wght@300;400;500;600;700&display=swap');
 
-<meta charset="UTF-8">
-<title>Newest Reviews</title>
+.rvw-root *, .rvw-root *::before, .rvw-root *::after {
+  box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;
+}
+.rvw-root {
+  font-family: 'Open Sans', system-ui, sans-serif !important;
+  font-weight: 300 !important; line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased !important;
+  background: transparent !important; display: block !important;
+}
+.rvw-root a { text-decoration: none !important; color: inherit !important; }
+.rvw-section {
+  background: #fff !important; padding: 64px 0 80px !important;
+  display: block !important; width: 100% !important;
+}
+.rvw-inner {
+  max-width: 1240px !important; margin: 0 auto !important; padding: 0 48px !important;
+}
+.rvw-header {
+  display: flex !important; align-items: flex-end !important;
+  justify-content: space-between !important; margin-bottom: 40px !important;
+}
+.rvw-heading { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+.rvw-overline {
+  display: flex !important; align-items: center !important; gap: 12px !important;
+  font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.22em !important;
+  text-transform: uppercase !important; color: #ff9500 !important;
+}
+.rvw-overline::before, .rvw-overline::after {
+  content: '' !important; display: block !important; height: 1px !important;
+  width: 40px !important; background: #ff9500 !important; flex-shrink: 0 !important;
+}
+.rvw-title {
+  font-family: 'Merriweather', Georgia, serif !important;
+  font-size: clamp(32px, 4vw, 54px) !important; font-weight: 700 !important;
+  line-height: 1.1 !important; letter-spacing: -0.02em !important;
+  color: #0f0f1a !important; display: block !important;
+}
+.rvw-title em {
+  color: #ff9500 !important; font-style: italic !important;
+  font-family: 'Merriweather', Georgia, serif !important; font-weight: 700 !important;
+}
+.rvw-view-all {
+  display: inline-flex !important; align-items: center !important; gap: 6px !important;
+  font-size: 12px !important; font-weight: 700 !important; letter-spacing: 0.14em !important;
+  text-transform: uppercase !important; color: #0f0f1a !important;
+  padding-bottom: 10px !important; transition: color .2s !important;
+  white-space: nowrap !important; flex-shrink: 0 !important;
+}
+.rvw-view-all:hover { color: #ff9500 !important; }
+.rvw-view-all svg { transition: transform .2s !important; }
+.rvw-view-all:hover svg { transform: translateX(3px) !important; }
+.rvw-grid {
+  display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 20px !important;
+}
+.rvw-card {
+  background: #fff !important; border-radius: 10px !important; overflow: hidden !important;
+  border: 1px solid #e8e8f0 !important; display: flex !important; flex-direction: column !important;
+  transition: transform .22s, box-shadow .22s !important; cursor: pointer !important;
+}
+.rvw-card:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 40px rgba(0,0,0,.1) !important; }
+.rvw-banner {
+  position: relative !important; width: 100% !important; height: 160px !important;
+  overflow: hidden !important; flex-shrink: 0 !important; background: #09092a !important;
+}
+.rvw-banner-img {
+  width: 100% !important; height: 100% !important; object-fit: cover !important;
+  display: block !important; transition: transform .35s !important;
+}
+.rvw-card:hover .rvw-banner-img { transform: scale(1.05) !important; }
+.rvw-banner-fallback {
+  width: 100% !important; height: 100% !important; display: flex !important;
+  align-items: center !important; justify-content: center !important;
+  font-family: 'Merriweather', Georgia, serif !important; font-size: 40px !important;
+  font-weight: 700 !important; color: rgba(255,255,255,.2) !important;
+  background: linear-gradient(135deg, #09092a 0%, #1a1980 55%, #2a29a6 100%) !important;
+}
+.rvw-badge {
+  position: absolute !important; top: 12px !important; left: 12px !important;
+  display: inline-flex !important; align-items: center !important; gap: 5px !important;
+  padding: 4px 10px !important; border-radius: 4px !important;
+  font-size: 10px !important; font-weight: 700 !important; letter-spacing: 0.08em !important;
+  text-transform: uppercase !important; color: #fff !important; background: #ff9500 !important;
+}
+.rvw-body {
+  padding: 16px !important; display: flex !important; flex-direction: column !important;
+  flex: 1 !important; gap: 8px !important;
+}
+.rvw-stars { display: flex !important; gap: 1px !important; }
+.rvw-star   { color: #ff9500 !important; font-size: 14px !important; line-height: 1 !important; }
+.rvw-star.e { color: #ddd !important; }
+.rvw-mname {
+  font-size: 15px !important; font-weight: 700 !important; color: #0f0f1a !important;
+  display: block !important; line-height: 1.3 !important;
+}
+.rvw-reviewer { font-size: 11.5px !important; font-weight: 600 !important; color: #9090aa !important; display: block !important; }
+.rvw-text {
+  font-size: 12.5px !important; font-weight: 300 !important; color: #444458 !important;
+  line-height: 1.65 !important; display: -webkit-box !important; -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important; overflow: hidden !important; flex: 1 !important;
+}
+.rvw-card-cta {
+  display: inline-flex !important; align-items: center !important; gap: 5px !important;
+  font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.1em !important;
+  text-transform: uppercase !important; color: #0f0f1a !important;
+  padding-top: 10px !important; border-top: 1px solid #f0f0f8 !important;
+  margin-top: auto !important; transition: color .2s !important;
+}
+.rvw-card:hover .rvw-card-cta { color: #ff9500 !important; }
+.rvw-skel {
+  background: #fff !important; border-radius: 10px !important;
+  border: 1px solid #e8e8f0 !important; overflow: hidden !important;
+}
+.rvw-skel-img {
+  height: 160px !important;
+  background: linear-gradient(90deg,#eaeaf0 25%,#f5f5f8 50%,#eaeaf0 75%) !important;
+  background-size: 200% 100% !important; animation: rvwSh 1.4s infinite !important;
+}
+.rvw-skel-body { padding: 16px !important; display: flex !important; flex-direction: column !important; gap: 9px !important; }
+.rvw-sl {
+  border-radius: 4px !important;
+  background: linear-gradient(90deg,#eaeaf0 25%,#f5f5f8 50%,#eaeaf0 75%) !important;
+  background-size: 200% 100% !important; animation: rvwSh 1.4s infinite !important;
+  display: block !important; height: 12px !important;
+}
+.rvw-sl.a{width:30%!important;} .rvw-sl.b{width:60%!important;}
+.rvw-sl.c{width:80%!important;} .rvw-sl.d{width:100%!important;height:10px!important;}
+.rvw-sl.e{width:70%!important;height:10px!important;}
+@keyframes rvwSh { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+.rvw-debug {
+  grid-column: 1 / -1 !important; background: #1a1a2e !important; color: #4dda96 !important;
+  border-radius: 8px !important; padding: 20px !important; font-family: monospace !important;
+  font-size: 12px !important; line-height: 1.8 !important; white-space: pre-wrap !important;
+  word-break: break-all !important;
+}
+.rvw-status {
+  grid-column: 1 / -1 !important; display: flex !important; flex-direction: column !important;
+  align-items: center !important; gap: 12px !important;
+  padding: 56px 20px !important; text-align: center !important;
+}
+.rvw-status-msg { font-size: 14px !important; color: #666 !important; font-weight: 500 !important; }
+.rvw-status-sub { font-size: 12px !important; color: #aaa !important; max-width: 400px !important; line-height: 1.6 !important; }
+.rvw-retry-btn {
+  padding: 10px 26px !important; background: #ff9500 !important; color: #fff !important;
+  border: none !important; border-radius: 5px !important; font-size: 12.5px !important;
+  font-weight: 700 !important; letter-spacing: 0.06em !important; cursor: pointer !important;
+  font-family: 'Open Sans', system-ui, sans-serif !important; transition: background .2s !important;
+}
+.rvw-retry-btn:hover { background: #e68600 !important; }
+@media (max-width: 1024px) { .rvw-grid { grid-template-columns: repeat(2,1fr) !important; } }
+@media (max-width: 640px) {
+  .rvw-inner  { padding: 0 20px !important; }
+  .rvw-grid   { grid-template-columns: 1fr !important; }
+  .rvw-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+  .rvw-view-all { padding-bottom: 0 !important; }
+  .rvw-section  { padding: 48px 0 60px !important; }
+}
+</style>
 
-<link rel="stylesheet" href="style.css">
-
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-
-</head>
-
-<body>
-
-<div id="reviews"></div>
+<div class="rvw-root">
+  <div class="rvw-section">
+    <div class="rvw-inner">
+      <div class="rvw-header">
+        <div class="rvw-heading">
+          <span class="rvw-overline">Biohacking &amp; Wellness</span>
+          <span class="rvw-title">Newest <em>Reviews</em></span>
+        </div>
+        <a class="rvw-view-all"
+           href="https://www.biohackingcompanies.com/members/reviews/newest/"
+           target="_blank" rel="noopener noreferrer">
+          View All
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="rvw-grid" id="rvw-grid"></div>
+    </div>
+  </div>
+</div>
 
 <script>
-async function loadReviews(){
+(function () {
+  'use strict';
 
-  const container = document.getElementById("reviews");
+  const BD = 'https://www.biohackingcompanies.com';
+  const API_KEY = '84e89a2e5be06a9eb5b9628242c071a6';
+  const MAX = 12;
+  const REFRESH = 5 * 60 * 1000;
 
-  try{
+  const grid = document.getElementById('rvw-grid');
 
-    const res = await fetch("https://www.biohackingcompanies.com/api/v2/users_reviews/search", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": "YOUR_API_KEY"
-      },
-      body: JSON.stringify({
-        limit: 100,
-        page: 1,
-        output_type: "array"
-      })
-    });
-
-    const json = await res.json();
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(json.message,"text/html");
-
-    const reviews = doc.querySelectorAll(".module.search_result");
-
-    let map = new Map();
-
-    reviews.forEach(r=>{
-
-      const company =
-        r.querySelector(".notranslate")?.innerText.trim() || "Company";
-
-      const reviewer =
-        r.innerText.match(/Submitted by (.*?) on/)?.[1] || "Anonymous";
-
-      const rating =
-        r.querySelectorAll(".fa-star, .fa-star-filled").length || 5;
-
-      let description =
-        r.querySelectorAll("p")[1]?.innerText || "";
-
-      if(description.length > 140){
-        description = description.substring(0,137)+"...";
-      }
-
-      const reviewLink =
-        r.querySelector('a[href*="/reviews/"]')?.getAttribute("href") || "";
-
-      const link = reviewLink
-        ? "https://www.biohackingcompanies.com" + reviewLink
-        : "#";
-
-      const dateText =
-        r.innerText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
-
-      const date = new Date(dateText);
-
-      // ✅ LATEST PER COMPANY
-      if(!map.has(company) || map.get(company).date < date){
-        map.set(company,{
-          company,
-          reviewer,
-          rating,
-          description,
-          link,
-          date
-        });
-      }
-
-    });
-
-    let cards = Array.from(map.values());
-
-    // 🔥 RANDOM
-    cards.sort(()=>Math.random()-0.5);
-
-    // 🔥 LIMIT
-    cards = cards.slice(0,12);
-
-    container.innerHTML = "";
-
-    cards.forEach(c=>{
-
-      const stars = "★".repeat(c.rating);
-
-      const card = document.createElement("a");
-
-      card.className = "review-card";
-      card.href = c.link;
-      card.target = "_blank";
-
-      card.innerHTML = `
-        <div class="review-company">${c.company}</div>
-        <div class="review-stars">${stars}</div>
-        <div class="review-text">${c.description}</div>
-        <div class="review-footer">
-          <span>By ${c.reviewer}</span>
-          <span>Read More →</span>
-        </div>
-      `;
-
-      container.appendChild(card);
-
-    });
-
-  } catch(err){
-
-    container.innerHTML = "Failed to load reviews.";
-    console.error(err);
-
+  /* ── Helpers ── */
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
   }
 
-}
+  function strip(s) {
+    const d = document.createElement('div');
+    d.innerHTML = s || '';
+    return (d.textContent || '').trim();
+  }
 
-loadReviews();
+  function initials(n) {
+    return (n || '?')
+      .split(' ')
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0,2);
+  }
+
+  function starsHtml(r) {
+    r = Math.round(parseFloat(r) || 0);
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+      html += `<span class="rvw-star ${i > r ? 'e' : ''}">★</span>`;
+    }
+    return html;
+  }
+
+  /* ── Skeleton ── */
+  function showSkeleton() {
+    let html = '';
+    for (let i = 0; i < MAX; i++) {
+      html += `
+        <div class="rvw-skel">
+          <div class="rvw-skel-img"></div>
+          <div class="rvw-skel-body">
+            <div class="rvw-sl a"></div>
+            <div class="rvw-sl b"></div>
+            <div class="rvw-sl c"></div>
+            <div class="rvw-sl d"></div>
+            <div class="rvw-sl e"></div>
+          </div>
+        </div>
+      `;
+    }
+    grid.innerHTML = html;
+  }
+
+  /* ── Unique latest review per company ── */
+  function uniqueLatest(list) {
+    const map = new Map();
+
+    list.forEach(r => {
+      const company = (r.review_company || '').trim();
+      const date = new Date(r.review_added || 0);
+
+      if (!company) return;
+
+      if (!map.has(company) || map.get(company).date < date) {
+        map.set(company, { ...r, date });
+      }
+    });
+
+    return Array.from(map.values());
+  }
+
+  /* ── Build Card ── */
+  function buildCard(r) {
+
+    const company = r.review_company || 'Company';
+    const reviewer = r.review_name || 'Customer';
+    const rating = r.rating_overall || 5;
+
+    const text = strip(
+      (r.review_title || '') + ' ' + (r.review_description || '')
+    ).slice(0, 160) + '...';
+
+    const link = r.review_id
+      ? `${BD}/members/reviews/view/${r.review_id}`
+      : `${BD}/members/reviews/newest/`;
+
+    return `
+      <a class="rvw-card" href="${esc(link)}" target="_blank">
+        
+        <div class="rvw-banner">
+          <div class="rvw-banner-fallback">${esc(initials(company))}</div>
+        </div>
+
+        <div class="rvw-body">
+          <div class="rvw-stars">${starsHtml(rating)}</div>
+
+          <span class="rvw-mname">${esc(company)}</span>
+          <span class="rvw-reviewer">${esc(reviewer)}</span>
+
+          <span class="rvw-text">${esc(text)}</span>
+
+          <span class="rvw-card-cta">
+            Read More →
+          </span>
+        </div>
+
+      </a>
+    `;
+  }
+
+  /* ── Load Reviews ── */
+  async function load() {
+
+    showSkeleton();
+
+    try {
+
+      const res = await fetch(BD + '/api/v2/users_reviews/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': API_KEY
+        },
+        body: JSON.stringify({
+          limit: 200,
+          page: 1,
+          output_type: "array"
+        })
+      });
+
+      const data = await res.json();
+
+      let list = data.message || [];
+
+      if (!list.length) {
+        grid.innerHTML = "No reviews found.";
+        return;
+      }
+
+      // ✅ remove duplicates (latest per company)
+      list = uniqueLatest(list);
+
+      // ✅ randomize
+      list.sort(() => Math.random() - 0.5);
+
+      // ✅ limit display
+      list = list.slice(0, MAX);
+
+      grid.innerHTML = list.map(buildCard).join('');
+
+    } catch (err) {
+      grid.innerHTML = "Failed to load reviews.";
+      console.error(err);
+    }
+  }
+
+  load();
+  setInterval(load, REFRESH);
+
+})();
 </script>
-</body>
-</html>
