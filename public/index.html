@@ -90,25 +90,14 @@ reviews.forEach(r=>{
 });
 
 
-/* DEDUPLICATE BY COMPANY (keep first occurrence) */
-
-{
-  const unique = new Map();
-  cards.forEach(c => {
-    const key = (c.company || "").trim();
-    if (key && !unique.has(key)) unique.set(key, c);
-  });
-  cards = Array.from(unique.values());
-}
-
 /* RANDOM ORDER */
 
-cards.sort(() => Math.random() - 0.5);
+cards.sort(()=>Math.random()-0.5);
 
 
 /* LIMIT TO 12 */
 
-cards = cards.slice(0, 12);
+cards = cards.slice(0,12);
 
 
     
