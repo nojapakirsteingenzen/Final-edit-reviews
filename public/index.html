@@ -18,111 +18,30 @@
 <script>
 async function loadReviews(){
 
+  const container = document.getElementById("reviews");
+
   try{
 
     const res = await fetch("/api/reviews");
-    const json = await res.json();
+    const data = await res.json();
 
-    const container = document.getElementById("reviews");
+    container.innerHTML = "";
 
-    if(!json.message){
-      container.innerHTML="No reviews available.";
-      return;
-    }
+    data.forEach(c=>{
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(json.message,"text/html");
+      const stars = "★".repeat(c.rating);
 
-    const reviews = doc.querySelectorAll(".module.search_result");
+      const card = document.createElement("a");
 
-    container.innerHTML="";
+      card.className = "review-card";
+      card.href = c.link;
+      card.target = "_blank";
 
-    let companyMap = new Map();
-
-    reviews.forEach(r=>{
-
-      /* COMPANY NAME */
-     const company =
-  r.querySelector(".notranslate")?.innerText.trim() ||
-  "Company";
-      /* REVIEW DATE (for latest logic) */
-      const dateText =
-        r.innerText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
-
-      const date = new Date(dateText);
-
-      /* REVIEWER NAME */
-      const reviewer =
-        r.innerText.match(/Submitted by (.*?) on/)?.[1] || "Anonymous";
-
-      /* RATING */
-      const stars = r.querySelectorAll(".fa-star, .fa-star-filled").length || 5;
-
-      /* DESCRIPTION */
-      let description =
-        r.querySelectorAll("p")[1]?.innerText ||
-        r.querySelector("p")?.innerText ||
-        "";
-
-      if(description.length > 140){
-        description = description.substring(0,137)+"...";
-      }
-
-      /* LOGO */
-      const logo =
-        r.querySelector(".member-review-image img")?.src || "";
-
-      /* LINK */
-      const path =
-        r.querySelector("a")?.getAttribute("href") || "";
-
-      const link =
-        "https://www.biohackingcompanies.com"+path;
-
-      /* 🧠 KEEP ONLY LATEST REVIEW PER COMPANY */
-      if(!companyMap.has(company) || companyMap.get(company).date < date){
-        companyMap.set(company,{
-          company,
-          description,
-          link,
-          logo,
-          reviewer,
-          stars,
-          date
-        });
-      }
-
-    });
-
-    /* CONVERT TO ARRAY */
-    let cards = Array.from(companyMap.values());
-
-    /* RANDOMIZE */
-    cards.sort(()=>Math.random()-0.5);
-
-    /* LIMIT */
-    cards = cards.slice(0,12);
-
-    /* RENDER */
-    cards.forEach(c=>{
-
-      const starsHTML = "★".repeat(c.stars);
-
-      const card=document.createElement("a");
-
-      card.className="review-card";
-      card.href=c.link;
-      card.target="_blank";
-
-      card.innerHTML=`
-
-        <div class="review-logo">
-          <img src="${c.logo}" alt="${c.company}">
-        </div>
+      card.innerHTML = `
 
         <div class="review-company">${c.company}</div>
 
-        <div class="review-stars">${starsHTML}</div>
+        <div class="review-stars">${stars}</div>
 
         <div class="review-text">${c.description}</div>
 
@@ -137,13 +56,9 @@ async function loadReviews(){
 
     });
 
-  }
+  } catch(err){
 
-  catch(err){
-
-    document.getElementById("reviews").innerHTML=
-    "Unable to load reviews.";
-
+    container.innerHTML = "Failed to load reviews.";
     console.error(err);
 
   }
