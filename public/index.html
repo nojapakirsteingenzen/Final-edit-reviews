@@ -42,11 +42,9 @@ async function loadReviews(){
     reviews.forEach(r=>{
 
       /* COMPANY NAME */
-      const company =
-        r.querySelector(".notranslate")?.innerText ||
-        r.querySelector("h3")?.innerText ||
-        "Company";
-
+     const company =
+  r.querySelector(".notranslate")?.innerText.trim() ||
+  "Company";
       /* REVIEW DATE (for latest logic) */
       const dateText =
         r.innerText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
