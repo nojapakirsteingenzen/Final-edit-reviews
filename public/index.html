@@ -22,34 +22,31 @@ async function loadReviews(){
 
   try{
 
-    const res = await fetch("/api/reviews");
+    const res = await fetch("https://yourdomain.com/api/reviews.php");
     const data = await res.json();
 
     container.innerHTML = "";
 
     data.forEach(c=>{
 
-      const stars = "★".repeat(c.rating);
+      const stars = "★".repeat(c.rating_overall);
+
+      const link = `https://www.biohackingcompanies.com/reviews/${c.review_id}`;
 
       const card = document.createElement("a");
 
       card.className = "review-card";
-      card.href = c.link;
+      card.href = link;
       card.target = "_blank";
 
       card.innerHTML = `
-
-        <div class="review-company">${c.company}</div>
-
+        <div class="review-company">${c.review_company}</div>
         <div class="review-stars">${stars}</div>
-
-        <div class="review-text">${c.description}</div>
-
+        <div class="review-text">${c.review_description}</div>
         <div class="review-footer">
-          <span>By ${c.reviewer}</span>
+          <span>By ${c.review_name}</span>
           <span>Read More →</span>
         </div>
-
       `;
 
       container.appendChild(card);
@@ -67,6 +64,5 @@ async function loadReviews(){
 
 loadReviews();
 </script>
-
 </body>
 </html>
