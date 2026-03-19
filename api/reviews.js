@@ -4,35 +4,37 @@ export default async function handler(req, res) {
 
   try {
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": "38b2668904a5e2839b6106773444040b"
-      },
-      body: JSON.stringify({
-        limit: 200,
-        page: 100,
-        output_type: "array"
-      })
-    });
+    let allResults = [];
 
-    const text = await response.text();
+    // 🔥 FETCH MULTIPLE PAGES
+    for(let p = 1; p <= 5; p++){
 
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({
-        error: "API returned non-JSON response",
-        raw: text
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Api-Key": "YOUR_API_KEY"
+        },
+        body: JSON.stringify({
+          limit: 50,
+          page: p,
+          output_type: "array"
+        })
       });
+
+      const json = await response.json();
+
+      if(json.message){
+        allResults.push(json.message);
+      }
+
     }
 
     res.setHeader("Access-Control-Allow-Origin", "*");
 
-    res.status(200).json(data);
+    res.status(200).json({
+      message: allResults.join("") // merge HTML
+    });
 
   } catch (error) {
 
