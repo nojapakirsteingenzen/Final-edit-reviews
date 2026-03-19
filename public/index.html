@@ -16,7 +16,6 @@
 <div id="reviews"></div>
 
 <script>
-
 async function loadReviews(){
 
   try{
@@ -38,101 +37,107 @@ async function loadReviews(){
 
     container.innerHTML="";
 
-    let cards = [];
+    let companyMap = new Map();
 
-reviews.forEach(r=>{
+    reviews.forEach(r=>{
 
-  /* COMPANY NAME */
+      /* COMPANY NAME */
+      const company =
+        r.querySelector(".notranslate")?.innerText ||
+        r.querySelector("h3")?.innerText ||
+        "Company";
 
-  const company =
-    r.querySelector(".notranslate")?.innerText ||
-    r.querySelector("h3")?.innerText ||
-    "Company";
+      /* REVIEW DATE (for latest logic) */
+      const dateText =
+        r.innerText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
 
+      const date = new Date(dateText);
 
-  /* COMPANY LOGO */
+      /* REVIEWER NAME */
+      const reviewer =
+        r.innerText.match(/Submitted by (.*?) on/)?.[1] || "Anonymous";
 
-  const logo =
-    r.querySelector(".member-review-image img")?.src ||
-    "";
+      /* RATING */
+      const stars = r.querySelectorAll(".fa-star, .fa-star-filled").length || 5;
 
+      /* DESCRIPTION */
+      let description =
+        r.querySelectorAll("p")[1]?.innerText ||
+        r.querySelector("p")?.innerText ||
+        "";
 
-  /* DESCRIPTION */
+      if(description.length > 140){
+        description = description.substring(0,137)+"...";
+      }
 
-  let description =
-    r.querySelectorAll("p")[1]?.innerText ||
-    r.querySelector("p")?.innerText ||
-    "";
+      /* LOGO */
+      const logo =
+        r.querySelector(".member-review-image img")?.src || "";
 
-  if(description.length > 140){
-    description = description.substring(0,137)+"...";
-  }
+      /* LINK */
+      const path =
+        r.querySelector("a")?.getAttribute("href") || "";
 
+      const link =
+        "https://www.biohackingcompanies.com"+path;
 
-  /* COMPANY LINK */
+      /* 🧠 KEEP ONLY LATEST REVIEW PER COMPANY */
+      if(!companyMap.has(company) || companyMap.get(company).date < date){
+        companyMap.set(company,{
+          company,
+          description,
+          link,
+          logo,
+          reviewer,
+          stars,
+          date
+        });
+      }
 
-  const path =
-    r.querySelector("a")?.getAttribute("href") || "";
+    });
 
-  const link =
-    "https://www.biohackingcompanies.com"+path;
+    /* CONVERT TO ARRAY */
+    let cards = Array.from(companyMap.values());
 
+    /* RANDOMIZE */
+    cards.sort(()=>Math.random()-0.5);
 
-  /* STORE CARD DATA */
+    /* LIMIT */
+    cards = cards.slice(0,12);
 
-  cards.push({
-    company,
-    description,
-    link,
-    logo
-  });
+    /* RENDER */
+    cards.forEach(c=>{
 
-});
+      const starsHTML = "★".repeat(c.stars);
 
+      const card=document.createElement("a");
 
-/* RANDOM ORDER */
+      card.className="review-card";
+      card.href=c.link;
+      card.target="_blank";
 
-cards.sort(()=>Math.random()-0.5);
+      card.innerHTML=`
 
+        <div class="review-logo">
+          <img src="${c.logo}" alt="${c.company}">
+        </div>
 
-/* LIMIT TO 12 */
+        <div class="review-company">${c.company}</div>
 
-cards = cards.slice(0,12);
+        <div class="review-stars">${starsHTML}</div>
 
+        <div class="review-text">${c.description}</div>
 
-    
-/* CREATE CARDS */
+        <div class="review-footer">
+          <span>By ${c.reviewer}</span>
+          <span>Read More →</span>
+        </div>
 
-cards.forEach(c=>{
+      `;
 
-  const card=document.createElement("a");
+      container.appendChild(card);
 
-  card.className="review-card";
-  card.href=c.link;
-  card.target="_blank";
-
-  card.innerHTML=`
-
-    <div class="review-logo">
-      <img src="${c.logo}" alt="${c.company}">
-    </div>
-
-    <div class="review-company">${c.company}</div>
-
-    <div class="review-stars">★★★★★</div>
-
-    <div class="review-text">${c.description}</div>
-
-    <div class="review-footer">
-      <span>Verified Review</span>
-      <span>Read More →</span>
-    </div>
-
-  `;
-
-  container.appendChild(card);
-
-});
+    });
 
   }
 
@@ -148,7 +153,6 @@ cards.forEach(c=>{
 }
 
 loadReviews();
-
 </script>
 
 </body>
