@@ -11,8 +11,8 @@ export default async function handler(req, res) {
         "X-Api-Key": "38b2668904a5e2839b6106773444040b"
       },
       body: JSON.stringify({
-        limit: 50,
-        page: 1,
+        limit: 200,
+        page: 100,
         output_type: "array"
       })
     });
