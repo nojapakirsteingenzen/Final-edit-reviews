@@ -2,15 +2,6 @@ export default async function handler(req, res) {
 
   const API_URL = "https://www.biohackingcompanies.com/api/v2/users_reviews/search";
 
-  // Allow callers to control paging via query params (e.g. /api/reviews?limit=20&page=2)
-  const { limit = 50, page = 1, output_type = "array" } = req.query;
-
-  const body = {
-    limit: Number(limit) || 50,
-    page: Number(page) || 1,
-    output_type: String(output_type)
-  };
-
   try {
 
     const response = await fetch(API_URL, {
@@ -19,7 +10,11 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
         "X-Api-Key": "38b2668904a5e2839b6106773444040b"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        limit: 50,
+        page: 1,
+        output_type: "array"
+      })
     });
 
     const text = await response.text();
