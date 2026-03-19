@@ -22,29 +22,98 @@ async function loadReviews(){
 
   try{
 
-    const res = await fetch("https://yourdomain.com/api/reviews.php");
-    const data = await res.json();
+    const res = await fetch("https://www.biohackingcompanies.com/api/v2/users_reviews/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": "YOUR_API_KEY"
+      },
+      body: JSON.stringify({
+        limit: 100,
+        page: 1,
+        output_type: "array"
+      })
+    });
+
+    const json = await res.json();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(json.message,"text/html");
+
+    const reviews = doc.querySelectorAll(".module.search_result");
+
+    let map = new Map();
+
+    reviews.forEach(r=>{
+
+      const company =
+        r.querySelector(".notranslate")?.innerText.trim() || "Company";
+
+      const reviewer =
+        r.innerText.match(/Submitted by (.*?) on/)?.[1] || "Anonymous";
+
+      const rating =
+        r.querySelectorAll(".fa-star, .fa-star-filled").length || 5;
+
+      let description =
+        r.querySelectorAll("p")[1]?.innerText || "";
+
+      if(description.length > 140){
+        description = description.substring(0,137)+"...";
+      }
+
+      const reviewLink =
+        r.querySelector('a[href*="/reviews/"]')?.getAttribute("href") || "";
+
+      const link = reviewLink
+        ? "https://www.biohackingcompanies.com" + reviewLink
+        : "#";
+
+      const dateText =
+        r.innerText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || "";
+
+      const date = new Date(dateText);
+
+      // ✅ LATEST PER COMPANY
+      if(!map.has(company) || map.get(company).date < date){
+        map.set(company,{
+          company,
+          reviewer,
+          rating,
+          description,
+          link,
+          date
+        });
+      }
+
+    });
+
+    let cards = Array.from(map.values());
+
+    // 🔥 RANDOM
+    cards.sort(()=>Math.random()-0.5);
+
+    // 🔥 LIMIT
+    cards = cards.slice(0,12);
 
     container.innerHTML = "";
 
-    data.forEach(c=>{
+    cards.forEach(c=>{
 
-      const stars = "★".repeat(c.rating_overall);
-
-      const link = `https://www.biohackingcompanies.com/reviews/${c.review_id}`;
+      const stars = "★".repeat(c.rating);
 
       const card = document.createElement("a");
 
       card.className = "review-card";
-      card.href = link;
+      card.href = c.link;
       card.target = "_blank";
 
       card.innerHTML = `
-        <div class="review-company">${c.review_company}</div>
+        <div class="review-company">${c.company}</div>
         <div class="review-stars">${stars}</div>
-        <div class="review-text">${c.review_description}</div>
+        <div class="review-text">${c.description}</div>
         <div class="review-footer">
-          <span>By ${c.review_name}</span>
+          <span>By ${c.reviewer}</span>
           <span>Read More →</span>
         </div>
       `;
