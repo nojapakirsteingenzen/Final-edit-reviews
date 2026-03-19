@@ -164,20 +164,18 @@
     <div class="rvw-inner">
       <div class="rvw-header">
         <div class="rvw-heading">
-          <span class="rvw-overline">Biohacking &amp; Wellness</span>
+          <span class="rvw-overline">Biohacking & Wellness</span>
           <span class="rvw-title">Newest <em>Reviews</em></span>
         </div>
         <a class="rvw-view-all"
            href="https://www.biohackingcompanies.com/members/reviews/newest/"
-           target="_blank" rel="noopener noreferrer">
-          View All
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+           target="_blank">
+          View All →
         </a>
       </div>
+
       <div class="rvw-grid" id="rvw-grid"></div>
+
     </div>
   </div>
 </div>
@@ -186,29 +184,28 @@
 (function () {
   'use strict';
 
+  // ✅ REQUIRED
   const API_URL = "https://final-edit-reviews-7nkcy2vb.vercel.app/api/reviews";
-  const API_KEY = '38b2668904a5e2839b6106773444040b';
-  const MAX = 12;
-  const REFRESH = 5 * 60 * 1000;
+  const BD = "https://www.biohackingcompanies.com";
 
+  const MAX = 12;
   const grid = document.getElementById('rvw-grid');
 
   /* ── Helpers ── */
-  function esc(s) {
+  function esc(s){
     return String(s || '')
       .replace(/&/g,'&amp;')
       .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
+      .replace(/>/g,'&gt;');
   }
 
-  function strip(s) {
+  function strip(s){
     const d = document.createElement('div');
     d.innerHTML = s || '';
-    return (d.textContent || '').trim();
+    return d.textContent.trim();
   }
 
-  function initials(n) {
+  function initials(n){
     return (n || '?')
       .split(' ')
       .map(w => w[0])
@@ -217,130 +214,126 @@
       .slice(0,2);
   }
 
-  function starsHtml(r) {
+  function starsHtml(r){
     r = Math.round(parseFloat(r) || 0);
     let html = '';
-    for (let i = 1; i <= 5; i++) {
-      html += `<span class="rvw-star ${i > r ? 'e' : ''}">★</span>`;
+    for(let i=1;i<=5;i++){
+      html += `<span class="rvw-star ${i>r?'e':''}">★</span>`;
     }
     return html;
   }
 
   /* ── Skeleton ── */
-  function showSkeleton() {
-    let html = '';
-    for (let i = 0; i < MAX; i++) {
-      html += `
-        <div class="rvw-skel">
-          <div class="rvw-skel-img"></div>
-          <div class="rvw-skel-body">
-            <div class="rvw-sl a"></div>
-            <div class="rvw-sl b"></div>
-            <div class="rvw-sl c"></div>
-            <div class="rvw-sl d"></div>
-            <div class="rvw-sl e"></div>
-          </div>
+  function showSkeleton(){
+    let html='';
+    for(let i=0;i<MAX;i++){
+      html+=`
+      <div class="rvw-skel">
+        <div class="rvw-skel-img"></div>
+        <div class="rvw-skel-body">
+          <div class="rvw-sl a"></div>
+          <div class="rvw-sl b"></div>
+          <div class="rvw-sl c"></div>
+          <div class="rvw-sl d"></div>
         </div>
-      `;
+      </div>`;
     }
-    grid.innerHTML = html;
+    grid.innerHTML=html;
   }
 
-  /* ── Unique latest review per company ── */
-  function uniqueLatest(list) {
+  /* ── Remove duplicates (latest per company) ── */
+  function uniqueLatest(list){
     const map = new Map();
 
-    list.forEach(r => {
+    list.forEach(r=>{
       const company = (r.review_company || '').trim();
       const date = new Date(r.review_added || 0);
 
-      if (!company) return;
+      if(!company) return;
 
-      if (!map.has(company) || map.get(company).date < date) {
-        map.set(company, { ...r, date });
+      if(!map.has(company) || map.get(company).date < date){
+        map.set(company,{...r,date});
       }
     });
 
     return Array.from(map.values());
   }
 
-  /* ── Build Card ── */
-  function buildCard(r) {
+  /* ── Build card ── */
+  function buildCard(r){
 
-    const company = r.review_company || 'Company';
-    const reviewer = r.review_name || 'Customer';
+    const company = r.review_company || "Company";
+    const reviewer = r.review_name || "Customer";
     const rating = r.rating_overall || 5;
 
-    const text = strip(
+    let text = strip(
       (r.review_title || '') + ' ' + (r.review_description || '')
-    ).slice(0, 160) + '...';
+    );
+
+    if(text.length > 150){
+      text = text.substring(0,147) + "...";
+    }
 
     const link = r.review_id
       ? `${BD}/members/reviews/view/${r.review_id}`
       : `${BD}/members/reviews/newest/`;
 
     return `
-      <a class="rvw-card" href="${esc(link)}" target="_blank">
-        
-        <div class="rvw-banner">
-          <div class="rvw-banner-fallback">${esc(initials(company))}</div>
-        </div>
+    <a class="rvw-card" href="${link}" target="_blank">
+      
+      <div class="rvw-banner">
+        <div class="rvw-banner-fallback">${initials(company)}</div>
+      </div>
 
-        <div class="rvw-body">
-          <div class="rvw-stars">${starsHtml(rating)}</div>
+      <div class="rvw-body">
+        <div class="rvw-stars">${starsHtml(rating)}</div>
 
-          <span class="rvw-mname">${esc(company)}</span>
-          <span class="rvw-reviewer">${esc(reviewer)}</span>
+        <span class="rvw-mname">${esc(company)}</span>
+        <span class="rvw-reviewer">${esc(reviewer)}</span>
 
-          <span class="rvw-text">${esc(text)}</span>
+        <span class="rvw-text">${esc(text)}</span>
 
-          <span class="rvw-card-cta">
-            Read More →
-          </span>
-        </div>
+        <span class="rvw-card-cta">Read More →</span>
+      </div>
 
-      </a>
-    `;
+    </a>`;
   }
 
-  /* ── Load Reviews ── */
- 
-      async function load() {
+  /* ── Load ── */
+  async function load(){
 
-  showSkeleton();
+    showSkeleton();
 
-  try {
+    try{
 
-    const res = await fetch("https://final-edit-reviews-7nkcy2vb.vercel.app/api/reviews");
+      const res = await fetch(API_URL);
+      const data = await res.json();
 
-    const data = await res.json();
+      let list = data.message || [];
 
-    let list = data.message || [];
+      if(!list.length){
+        grid.innerHTML = "No reviews found.";
+        return;
+      }
 
-    if (!list.length) {
-      grid.innerHTML = "No reviews found.";
-      return;
+      // ✅ fix duplicates
+      list = uniqueLatest(list);
+
+      // ✅ random
+      list.sort(()=>Math.random()-0.5);
+
+      // ✅ limit
+      list = list.slice(0, MAX);
+
+      grid.innerHTML = list.map(buildCard).join('');
+
+    }catch(err){
+      console.error(err);
+      grid.innerHTML = "Failed to load reviews.";
     }
-
-    // remove duplicates (latest per company)
-    list = uniqueLatest(list);
-
-    // randomize
-    list.sort(() => Math.random() - 0.5);
-
-    // limit
-    list = list.slice(0, MAX);
-
-    grid.innerHTML = list.map(buildCard).join('');
-
-  } catch (err) {
-    grid.innerHTML = "Failed to load reviews.";
-    console.error(err);
   }
-}
 
   load();
-  setInterval(load, REFRESH);
 
 })();
 </script>
